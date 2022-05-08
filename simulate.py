@@ -1,6 +1,7 @@
 from nbformat import read
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 from dynamics_models.CV import CV
 from dynamics_models.CA import CA
@@ -8,14 +9,15 @@ from measurement_models.range_only import RangeOnly
 from measurement_models.range_bearing import RangeBearing
 from filters.EKF import EKF
 from filters.UKF import UKF
+from filters.iEKF import iEKF
 from utils.Gauss import GaussState
 from read_data import read_data
 
 
 T = 0.1
 N = 500
-sigma_q = 0.01
-sigma_z = 0.01
+sigma_q = 0.1
+sigma_z = 0.1
 
 dyn_mod = CV(sigma_q, n=2)
 meas_mod = RangeBearing(sigma_z, m=1, n=2)
@@ -36,17 +38,15 @@ print(Z)
 gaussStates = [gauss0]
 previous_time = Ts[0]
 gauss = gauss0
-for i in range(1, N-1):
+for i in tqdm(range(1, N-1)):
     dt = Ts[i]-previous_time
 
     z = np.array([
         np.linalg.norm(X[i], 2)+np.random.randn(1)*0.1, 
         np.arctan(X[i, 1]/X[i, 0])+np.random.randn(1)*0.001]
     ).reshape((-1, 1))
-    print(z)
     #+np.random.randn(1)*10
 
-    print(z)
     pred = ekf_filter.predict(gauss,u=None, T=dt)
     gauss = ekf_filter.update(pred, z)
     gaussStates.append(gauss)
