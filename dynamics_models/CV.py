@@ -11,21 +11,21 @@ class CV():
     sigma: float
     n: int=2
 
-    def f(self, x, T):
+    def f(self, x, u, T):
 
         F = np.eye(self.n*2)
         F[:self.n, self.n:] = np.eye(self.n)*T
 
         return F@x
 
-    def F(self, x, T):
+    def F(self, x, u, T):
 
         F = np.eye(self.n*2)
         F[:self.n, self.n:] = np.eye(self.n)*T
 
         return F
     
-    def Q(self, x, T):
+    def Q(self, x, u, T):
 
         if self.n != 2:
             raise NotImplemented

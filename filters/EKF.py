@@ -1,27 +1,17 @@
 import numpy as np
-
-class GaussState:
-    def __init__(self, mean, cov):
-
-        self.mean = np.asarray(mean, dtype=np.float32).reshape((-1, 1))
-        self.cov = np.asarray(cov, dtype=np.float32)
-    
-
-    ## This function allows for tuple unpacking
-    def __iter__(self):
-        return iter((self.mean, self.cov))
+from utils.Gauss import GaussState
 
 class EKF():
     def __init__(self, dynamics_model, measurement_model):
         self.dyn_model = dynamics_model
         self.meas_model = measurement_model
 
-    def predict(self, gauss_state, T):
+    def predict(self, gauss_state, u, T):
         mu, S = gauss_state
-        F = self.dyn_model.F(mu, T)
+        F = self.dyn_model.F(mu,u, T)
 
-        mu_nxt = self.dyn_model.f(mu, T)
-        Sigma_nxt = F@S@F.T + self.dyn_model.Q(mu, T)
+        mu_nxt = self.dyn_model.f(mu, u, T)
+        Sigma_nxt = F@S@F.T + self.dyn_model.Q(mu,u, T)
     
         return GaussState(mu_nxt, Sigma_nxt)
 

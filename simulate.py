@@ -6,20 +6,22 @@ from dynamics_models.CV import CV
 from dynamics_models.CA import CA
 from measurement_models.range_only import RangeOnly
 from measurement_models.range_bearing import RangeBearing
-from filters.EKF import EKF, GaussState
+from filters.EKF import EKF
+from filters.UKF import UKF
+from utils.Gauss import GaussState
 from read_data import read_data
 
 
 T = 0.1
 N = 500
-sigma_q = 10
-sigma_z = 10
+sigma_q = 0.01
+sigma_z = 0.01
 
 dyn_mod = CV(sigma_q, n=2)
 meas_mod = RangeBearing(sigma_z, m=1, n=2)
 
 mu0 = np.ones((4,1))
-cov0 = np.eye(4)*10
+cov0 = np.eye(4)*1
 
 gauss0 = GaussState(mu0, cov0)
 ekf_filter = EKF(dyn_mod, meas_mod)
@@ -45,7 +47,7 @@ for i in range(1, N-1):
     #+np.random.randn(1)*10
 
     print(z)
-    pred = ekf_filter.predict(gauss, dt)
+    pred = ekf_filter.predict(gauss,u=None, T=dt)
     gauss = ekf_filter.update(pred, z)
     gaussStates.append(gauss)
 
