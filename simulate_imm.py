@@ -19,7 +19,6 @@ N = 500
 sigma_q = 0.1
 sigma_z = 0.1
 
-dyn_mod = CA(sigma_q, n=2)
 filters = [
     EKF(CA(sigma_q, n=2), RangeBearing(sigma_z, state_dim=6)),
     EKF(CV(sigma_q, n=2), RangeBearing(sigma_z, state_dim=6))
@@ -52,7 +51,7 @@ Ts = GT[:, 0]
 X = GT[:, 1:3]
 previous_time = 0
 gaussStates = []
-
+model_weights = []
 for i in tqdm(range(1, N-1)):
     dt = Ts[i]-previous_time
 
@@ -64,15 +63,33 @@ for i in tqdm(range(1, N-1)):
 
     immstate = imm.predict(immstate,u=None, T=dt)
     immstate = imm.update(immstate, z)
-    gaussStates.append(imm.get_estimate(immstate))
+    gauss, weights = imm.get_estimate(immstate)
+    gaussStates.append(gauss)
+    model_weights.append(weights.flatten())
 
     previous_time = Ts[i]
     
 mus = []
+model_weights = np.array(model_weights)
+print(model_weights.shape)
 for gauss in gaussStates:
     mus.append(gauss.mean)
 mus = np.array(mus)
 plt.plot(X[:, 0], X[:, 1], label="GT")
 plt.plot(mus[:, 0], mus[:, 1], label="Estimate")
+print(N)
+for i in range(N):
+    T = f"{(i*dt):.0f}"
+    if i % (N//10) == 0:
+        plt.annotate(T, (mus[i, 0], mus[i, 1]))
+
+plt.legend()
+plt.show()
+
+for i in range(model_weights.shape[1]):
+
+    plt.plot(model_weights[:,i],
+         label= filters[i].dyn_model.__class__.__name__
+    )
 plt.legend()
 plt.show()

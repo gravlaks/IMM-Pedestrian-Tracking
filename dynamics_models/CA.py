@@ -47,7 +47,7 @@ class CA():
         Q[self.n*2:, self.n:self.n*2] = T*np.eye(self.n)
         Q[self.n*2:, self.n*2:] = np.eye(self.n)  
 
-        Q[4:, 4:]  = np.eye(2)*0.00001
+        #Q[4:, 4:]  = np.eye(2)*0.00001
         return Q*self.sigma**2
 
 def compute_Q():

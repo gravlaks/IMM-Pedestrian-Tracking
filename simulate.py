@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from dynamics_models.CV import CV
+from dynamics_models.CV_inc import CV
 from dynamics_models.CA import CA
 from measurement_models.range_only import RangeOnly
 from measurement_models.range_bearing import RangeBearing
@@ -24,14 +24,14 @@ dyn_mod = CA(sigma_q, n=2)
 if isinstance(dyn_mod, CA):
     state_dim = 6
 else:
-    state_dim = 4
+    state_dim = 6
 mu0 = np.ones((state_dim,1))
 cov0 = np.eye(state_dim)*1
 meas_mod = RangeBearing(sigma_z,state_dim=state_dim)
 
 
 gauss0 = GaussState(mu0, cov0)
-ekf_filter = iEKF(dyn_mod, meas_mod)
+ekf_filter = EKF(dyn_mod, meas_mod)
 
 GT, Z = read_data()
 
@@ -47,8 +47,8 @@ for i in tqdm(range(1, N-1)):
     dt = Ts[i]-previous_time
 
     z = np.array([
-        np.linalg.norm(X[i], 2)+np.random.randn(1)*0.1, 
-        np.arctan(X[i, 1]/X[i, 0])+np.random.randn(1)*0.01]
+        np.linalg.norm(X[i], 2)+np.random.randn(1)*0.0001, 
+        np.arctan(X[i, 1]/X[i, 0])+np.random.randn(1)*0.0001]
     ).reshape((-1, 1))
     #+np.random.randn(1)*10
 

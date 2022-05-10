@@ -132,6 +132,5 @@ class IMM():
             gauss.cov for gauss in immstate.gauss_states
         ], dtype=np.float32).squeeze()
         weights = immstate.weights
-
         mean, cov = moments_gaussian_mixture(weights, means, covs)
-        return GaussState(mean, cov)
+        return GaussState(mean, cov), weights
