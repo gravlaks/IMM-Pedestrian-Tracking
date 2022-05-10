@@ -29,8 +29,11 @@ class iEKF():
                     S@C.T@np.linalg.solve(C@S@C.T + R, y-y_hat)
                     + S@C.T@np.linalg.solve(C@S@C.T + R, C@(mu_i-mu))
             )
+
             if np.linalg.norm(mu_nxt-mu_i)<eps:
                 break
+            y_hat = self.meas_model.h(mu)
+            C = self.meas_model.H(mu)
             mu_i = mu_nxt
         Sigma_nxt = S - S@C.T@np.linalg.solve(C@S@C.T + R, C@S)
 

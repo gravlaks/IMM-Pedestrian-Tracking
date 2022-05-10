@@ -1,6 +1,6 @@
 import numpy as np
 from utils.Gauss import GaussState
-
+import scipy
 class EKF():
     def __init__(self, dynamics_model, measurement_model):
         self.dyn_model = dynamics_model
@@ -26,3 +26,23 @@ class EKF():
         Sigma_nxt = S - S@C.T@np.linalg.solve(C@S@C.T + R, C@S)
 
         return GaussState(mu_nxt, Sigma_nxt)
+    
+    def loglikelihood(self, gauss_state, y):
+        """
+        Log likelihood of measurement.
+
+        This function returns, for a given measurement y, 
+        the result of p(y|x), where x is our posterior x
+
+        """
+
+        mean, cov = gauss_state
+        innov = y-self.meas_model.h(mean)
+
+        ## innovation covariance: 
+        H = self.meas_model.H(mean)
+        S = H@cov@H.T+self.meas_model.R(mean)
+
+        ll = scipy.stats.multivariate_normal.logpdf(innov, cov=S)
+        return ll
+        #res =  cov - cov@H.T@np.linalg.solve(S, H@cov)

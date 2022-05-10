@@ -20,13 +20,13 @@ sigma_q = 0.1
 sigma_z = 0.1
 
 dyn_mod = CV(sigma_q, n=2)
-meas_mod = RangeBearing(sigma_z, m=1, n=2)
+meas_mod = RangeOnly(sigma_z, m=1, n=2)
 
 mu0 = np.ones((4,1))
 cov0 = np.eye(4)*1
 
 gauss0 = GaussState(mu0, cov0)
-ekf_filter = EKF(dyn_mod, meas_mod)
+ekf_filter = UKF(dyn_mod, meas_mod)
 
 GT, Z = read_data()
 
@@ -43,7 +43,7 @@ for i in tqdm(range(1, N-1)):
 
     z = np.array([
         np.linalg.norm(X[i], 2)+np.random.randn(1)*0.1, 
-        np.arctan(X[i, 1]/X[i, 0])+np.random.randn(1)*0.001]
+        np.arctan(X[i, 1]/X[i, 0])+np.random.randn(1)*0.01]
     ).reshape((-1, 1))
     #+np.random.randn(1)*10
 
