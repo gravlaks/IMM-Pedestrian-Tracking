@@ -3,9 +3,9 @@ import numpy as np
 from utils.Gauss import GaussState, moments_gaussian_mixture
 from imm.Gaussian_Mixture import GaussianMixture
 class IMM():
-    def __init__(self, filters):
+    def __init__(self, filters, pi):
         self.filters = filters
-
+        self.pi = pi
 
     def mixing_probabilities(self, pi, p):
         """

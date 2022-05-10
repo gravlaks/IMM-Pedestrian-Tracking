@@ -19,19 +19,14 @@ N = 500
 sigma_q = 0.1
 sigma_z = 0.1
 
-dyn_mod = CA(sigma_q, n=2)
+dyn_mod = CV(sigma_q, n=2)
+meas_mod = RangeOnly(sigma_z, m=1, n=2)
 
-if isinstance(dyn_mod, CA):
-    state_dim = 6
-else:
-    state_dim = 4
-mu0 = np.ones((state_dim,1))
-cov0 = np.eye(state_dim)*1
-meas_mod = RangeBearing(sigma_z,state_dim=state_dim)
-
+mu0 = np.ones((4,1))
+cov0 = np.eye(4)*1
 
 gauss0 = GaussState(mu0, cov0)
-ekf_filter = EKF(dyn_mod, meas_mod)
+ekf_filter = UKF(dyn_mod, meas_mod)
 
 GT, Z = read_data()
 

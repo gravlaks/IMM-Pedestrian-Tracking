@@ -7,10 +7,10 @@ class RangeBearing():
     
     sigma: float
     m: int = 2
-    n: int = 2
+    state_dim: int = 2
 
     def h(self, x):
-        p = x[:self.n]
+        p = x[:2]
 
 
         return np.vstack(
@@ -21,11 +21,11 @@ class RangeBearing():
 
     def H(self, x):
         #http://www.cs.cmu.edu/~16385/s17/Slides/16.4_Extended_Kalman_Filter.pdf
-        p = x[:self.n]
+        p = x[:2]
 
         theta = np.arctan(p[1]/p[0])
         r = np.linalg.norm(p)
-        H = np.zeros((2, self.n*2))
+        H = np.zeros((2, self.state_dim))
         H[0, 0] = np.cos(theta)
         H[0, 1] = np.sin(theta)
         if r == 0: 
@@ -36,5 +36,5 @@ class RangeBearing():
         return H
 
     def R(self, x):
-        R = np.diag([self.sigma**2, self.sigma**2])
+        R = np.eye(self.m)*self.sigma**2
         return R
