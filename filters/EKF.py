@@ -1,6 +1,6 @@
 import numpy as np
 from utils.Gauss import GaussState
-import scipy
+import scipy.stats
 class EKF():
     def __init__(self, dynamics_model, measurement_model):
         self.dyn_model = dynamics_model
@@ -12,7 +12,8 @@ class EKF():
 
         mu_nxt = self.dyn_model.f(mu, u, T)
         Sigma_nxt = F@S@F.T + self.dyn_model.Q(mu,u, T)
-    
+        assert(mu.shape==mu_nxt.shape)
+
         return GaussState(mu_nxt, Sigma_nxt)
 
     def update(self, gauss_state, y):
@@ -24,7 +25,7 @@ class EKF():
 
         mu_nxt = mu+S@C.T@np.linalg.solve(C@S@C.T + R, y-y_hat)
         Sigma_nxt = S - S@C.T@np.linalg.solve(C@S@C.T + R, C@S)
-
+        assert(mu.shape==mu_nxt.shape)
         return GaussState(mu_nxt, Sigma_nxt)
     
     def loglikelihood(self, gauss_state, y):
@@ -42,7 +43,7 @@ class EKF():
         ## innovation covariance: 
         H = self.meas_model.H(mean)
         S = H@cov@H.T+self.meas_model.R(mean)
-
-        ll = scipy.stats.multivariate_normal.logpdf(innov, cov=S)
+        #S = S + np.eye(S.shape[0])*1e-4
+        ll = scipy.stats.multivariate_normal.logpdf(innov.flatten(), cov=S)
         return ll
         #res =  cov - cov@H.T@np.linalg.solve(S, H@cov)

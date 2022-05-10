@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from dynamics_models.CV import CV
+from dynamics_models.CV_inc import CV
 from dynamics_models.CA import CA
 from measurement_models.range_only import RangeOnly
 from measurement_models.range_bearing import RangeBearing
@@ -12,32 +12,47 @@ from filters.UKF import UKF
 from filters.iEKF import iEKF
 from utils.Gauss import GaussState
 from read_data import read_data
-
-
+from imm.Gaussian_Mixture import GaussianMixture
+from imm.IMM import IMM
 T = 0.1
 N = 500
 sigma_q = 0.1
 sigma_z = 0.1
 
-dyn_mod = CV(sigma_q, n=2)
-meas_mod = RangeOnly(sigma_z, m=1, n=2)
+dyn_mod = CA(sigma_q, n=2)
+filters = [
+    EKF(CA(sigma_q, n=2), RangeBearing(sigma_z, state_dim=6)),
+    EKF(CV(sigma_q, n=2), RangeBearing(sigma_z, state_dim=6))
+]
+init_weights = np.ones((2, 1))/2.
 
-mu0 = np.ones((4,1))
-cov0 = np.eye(4)*1
+init_mean1 = np.zeros((6, 1))
+init_mean2 = np.zeros((6, 1))
+init_cov1 = np.eye((6))*1.001
+init_cov2 = np.eye((6))
 
-gauss0 = GaussState(mu0, cov0)
-ekf_filter = UKF(dyn_mod, meas_mod)
+init_states = [
+    GaussState(init_mean1, init_cov1),
+        GaussState(init_mean2, init_cov2)]
+
+immstate = GaussianMixture(
+    init_weights, init_states
+)
+
+##High probability that you stay in state
+PI = np.array([[0.95, 0.05],
+             [0.05, 0.95]])
+
+imm = IMM(filters, PI)
 
 GT, Z = read_data()
 
 GT, Z = GT[:N], Z[:N]
 Ts = GT[:, 0]
 X = GT[:, 1:3]
-print(Z)
+previous_time = 0
+gaussStates = []
 
-gaussStates = [gauss0]
-previous_time = Ts[0]
-gauss = gauss0
 for i in tqdm(range(1, N-1)):
     dt = Ts[i]-previous_time
 
@@ -47,9 +62,9 @@ for i in tqdm(range(1, N-1)):
     ).reshape((-1, 1))
     #+np.random.randn(1)*10
 
-    pred = ekf_filter.predict(gauss,u=None, T=dt)
-    gauss = ekf_filter.update(pred, z)
-    gaussStates.append(gauss)
+    immstate = imm.predict(immstate,u=None, T=dt)
+    immstate = imm.update(immstate, z)
+    gaussStates.append(imm.get_estimate(immstate))
 
     previous_time = Ts[i]
     

@@ -14,10 +14,11 @@ class IMM():
         p = M, 1
         """
 
-        mu = pi.T@p
-        mu = mu/np.sum(mu)
+        mu = pi*p
+        mu = mu/(pi.T@p)
 
-        return mu
+
+        return mu, pi.T@p
 
     def mix_states(self, immstate, mu_probs):
         """
@@ -35,7 +36,7 @@ class IMM():
 
         mixes = []
         for mu_prob in mu_probs:
-            mean, cov = moments_gaussian_mixture(mu_prob, means, covs)
+            mean, cov = moments_gaussian_mixture(mu_prob.reshape((-1, 1)), means, covs)
 
             mixes.append(GaussState(mean, cov))
 
@@ -51,7 +52,7 @@ class IMM():
         """
         pred = []
         for state, filter in zip(mixed_states, self.filters):
-            pred.append(filter.predict(state, dt, u))
+            pred.append(filter.predict(state, u, dt))
         
         pred = np.array(pred)
         return pred
@@ -63,16 +64,18 @@ class IMM():
             upd.append(filter.update(state, y))
 
         upd = np.array(upd)
+        return upd
     
     def update_mode_probs(self, immstate, y):
         """
         6.32-33
         """
         mode_log_likelihood = []
-        for (means, covs, weights), filter in zip(immstate, self.filters):
-            mode_log_likelihood.append(filter.loglikelihood(y, GaussState(means, covs)))
+        for gauss_mixt, filter in zip(immstate.gauss_states, self.filters):
+            means, covs = gauss_mixt
+            mode_log_likelihood.append(filter.loglikelihood(GaussState(means, covs), y))
 
-        mode_log_likelihood = np.array(mode_log_likelihood)
+        mode_log_likelihood = np.array(mode_log_likelihood).reshape((-1, 1))
 
         p = immstate.weights
 
@@ -88,18 +91,18 @@ class IMM():
         return np.exp(log_weights+mode_log_likelihood-log_norm_factor)
 
     
-    def predict(self, immstate, u, dt):
+    def predict(self, immstate, u, T):
         """
         steps 1 and 2 
         """
         p = immstate.weights
-        mixing_probs = self.mixing_probabilities(self.pi, p)
+        mixing_probs, weights = self.mixing_probabilities(self.pi, p)
 
         mixes = self.mix_states(immstate, mixing_probs)
 
-        gauss_pred = self.filter_prediction(mixes, dt, u)
+        gauss_pred = self.filter_prediction(mixes, T, u)
         immstate = GaussianMixture(
-            mixing_probs, gauss_pred
+            weights, gauss_pred
         )
         return immstate
 
@@ -123,11 +126,11 @@ class IMM():
     def get_estimate(self, immstate):
 
         means = np.array([
-            gauss.mean for gauss in immstate.gauss_states
+            gauss.mean.flatten() for gauss in immstate.gauss_states
         ], dtype=np.float32)
         covs = np.array([
-            gauss.covs for gauss in immstate.gauss_states
-        ], dtype=np.float32)
+            gauss.cov for gauss in immstate.gauss_states
+        ], dtype=np.float32).squeeze()
         weights = immstate.weights
 
         mean, cov = moments_gaussian_mixture(weights, means, covs)

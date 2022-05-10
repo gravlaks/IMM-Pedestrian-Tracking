@@ -31,7 +31,7 @@ meas_mod = RangeBearing(sigma_z,state_dim=state_dim)
 
 
 gauss0 = GaussState(mu0, cov0)
-ekf_filter = EKF(dyn_mod, meas_mod)
+ekf_filter = iEKF(dyn_mod, meas_mod)
 
 GT, Z = read_data()
 

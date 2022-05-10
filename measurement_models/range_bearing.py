@@ -11,7 +11,8 @@ class RangeBearing():
 
     def h(self, x):
         p = x[:2]
-
+        if p[1] == 0:
+            return np.vstack((np.linalg.norm(p), np.sign(p[0])*np.pi/2 ))
 
         return np.vstack(
             (np.linalg.norm(p), 
@@ -28,8 +29,12 @@ class RangeBearing():
         H = np.zeros((2, self.state_dim))
         H[0, 0] = np.cos(theta)
         H[0, 1] = np.sin(theta)
+        if p[0] == 0:
+            H[0, 0] = 0
+            H[0, 1] = 1
         if r == 0: 
             return H
+        
         H[1, 0] = -np.sin(theta)/r
         H[1, 1] = np.cos(theta)/r
       
