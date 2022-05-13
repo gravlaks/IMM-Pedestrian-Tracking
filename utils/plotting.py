@@ -17,3 +17,7 @@ def plot(x_GT, gauss_est):
     plt.plot(x_GT[:, 2], label="theta GT")
     plt.legend()
     plt.show()
+
+def plot_trajectory(xs, zs):
+    plt.plot(xs[1:, 0], xs[1:, 1], label="X")
+    plt.show()

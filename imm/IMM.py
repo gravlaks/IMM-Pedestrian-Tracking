@@ -97,26 +97,31 @@ class IMM():
         """
         p = immstate.weights
         mixing_probs, weights = self.mixing_probabilities(self.pi, p)
-
+    
+            
         mixes = self.mix_states(immstate, mixing_probs)
 
         gauss_pred = self.filter_prediction(mixes, T, u)
+
+        weights = np.maximum(1e-10,weights )
         immstate = GaussianMixture(
             weights, gauss_pred
         )
         return immstate
 
     def update(self, immstate, y):
-
+        
         gauss_upd = self.filter_update(immstate.gauss_states, y)
-        weights_upd = self.update_mode_probs(immstate, y)
+        weights = self.update_mode_probs(immstate, y)
+        weights = np.maximum(1e-10,weights )
 
         immstate = GaussianMixture(
-            weights_upd, gauss_upd
+            weights, gauss_upd
         )
         return immstate
 
     def take_step(self, immstate, u, dt, y):
+        
         
         immstate = self.predict(immstate, u, dt)
         immstate = self.update(immstate, y)
@@ -132,5 +137,6 @@ class IMM():
             gauss.cov for gauss in immstate.gauss_states
         ], dtype=np.float32).squeeze()
         weights = immstate.weights
+        
         mean, cov = moments_gaussian_mixture(weights, means, covs)
         return GaussState(mean, cov), weights

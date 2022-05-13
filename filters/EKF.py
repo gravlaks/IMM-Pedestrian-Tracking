@@ -45,5 +45,6 @@ class EKF():
         S = H@cov@H.T+self.meas_model.R(mean)
         #S = S + np.eye(S.shape[0])*1e-4
         ll = scipy.stats.multivariate_normal.logpdf(innov.flatten(), cov=S)
+        #ll = max(-40, ll)
         return ll
         #res =  cov - cov@H.T@np.linalg.solve(S, H@cov)
