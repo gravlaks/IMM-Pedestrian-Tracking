@@ -13,20 +13,23 @@ class CA():
 
     def f(self, x, u, T):
 
-        F = np.eye(self.n*3)
-        F[:self.n, self.n:self.n*2] = np.eye(self.n)*T
-        F[:self.n, self.n*2:] = np.eye(self.n)*T*2/2
-        F[self.n:self.n*2, self.n*2:] = np.eye(self.n)*T
-        
+        F = self.F(x, u, T) 
 
         return F@x
 
     def F(self, x,u,T):
 
         F = np.eye(self.n*3)
-        F[:self.n, self.n:self.n*2] = np.eye(self.n)*T
-        F[:self.n, self.n*2:] = np.eye(self.n)*T*2/2
-        F[self.n:self.n*2, self.n*2:] = np.eye(self.n)*T
+
+        if u is None:
+            F[:self.n, self.n:self.n*2] = np.eye(self.n)*T
+            F[:self.n, self.n*2:] = np.eye(self.n)*T**2/2
+            F[self.n:self.n*2, self.n*2:] = np.eye(self.n)*T
+        else:
+            F[:self.n, self.n:self.n*2] = np.eye(self.n)*T
+            F[:self.n, self.n*2:] = u@np.eye(self.n)*T**2/2
+            F[self.n:self.n*2, self.n*2:] = u@np.eye(self.n)*T
+
         return F
     
     def Q(self, x,u,  T):

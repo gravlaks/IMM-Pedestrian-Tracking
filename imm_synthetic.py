@@ -15,6 +15,8 @@ from read_data import read_data
 from imm.Gaussian_Mixture import GaussianMixture
 from imm.IMM import IMM
 from generate_synthetic import generate_data
+from plot_statistics import plot_statistics
+
 T = 0.1
 N = 500
 sigma_q = 0.1
@@ -45,29 +47,35 @@ PI = np.array([[0.95, 0.05],
 
 imm = IMM(filters, PI)
 dt=0.1
-X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((6, 1)), cov0 = np.eye(6))
+X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((6, 1)), cov0 = np.eye(6), process_noise=True, sensor_noise=False)
 
-
-gaussStates = []
+gauss0, _ = imm.get_estimate(immstate)
+gaussStates = [gauss0]
 model_weights = []
-for i in tqdm(range(1, N-1)):
+for i in tqdm(range(1, N)):
 
     z = zs[i]
 
     immstate = imm.predict(immstate,u=None, T=dt)
+    gauss, weights = imm.get_estimate(immstate)
+    # print(gauss.mean)
     immstate = imm.update(immstate, z)
     gauss, weights = imm.get_estimate(immstate)
+    # print(gauss.mean)
     gaussStates.append(gauss)
     model_weights.append(weights.flatten())
 
     
     
 mus = []
+Sigmas = []
 model_weights = np.array(model_weights)
 print(model_weights.shape)
 for gauss in gaussStates:
     mus.append(gauss.mean)
+    Sigmas.append(gauss.cov)
 mus = np.array(mus)
+Sigmas = np.array(Sigmas)
 plt.plot(X[:, 0], X[:, 1], label="GT")
 plt.plot(mus[:, 0], mus[:, 1], label="Estimate")
 print(N)
@@ -77,7 +85,8 @@ for i in range(N):
         plt.annotate(T, (mus[i, 0], mus[i, 1]))
 
 plt.legend()
-plt.show()
+
+plt.figure()
 
 for i in range(model_weights.shape[1]):
 
@@ -85,4 +94,10 @@ for i in range(model_weights.shape[1]):
          label= filters[i].dyn_model.__class__.__name__
     )
 plt.legend()
+
+times = dt*np.ones(N)
+times = np.cumsum(times)
+
+plot_statistics(times, mus.squeeze(), Sigmas.squeeze(), X.squeeze(), zs.squeeze(), ['px', 'py', 'vx', 'vy', 'th', 'dth'], 'imm', meas_states=None)
+
 plt.show()

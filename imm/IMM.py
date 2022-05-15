@@ -53,6 +53,7 @@ class IMM():
         pred = []
         for state, filter in zip(mixed_states, self.filters):
             pred.append(filter.predict(state, u, dt))
+            # print(filter.predict(state, u, dt).mean)
         
         pred = np.array(pred)
         return pred
@@ -77,18 +78,32 @@ class IMM():
 
         mode_log_likelihood = np.array(mode_log_likelihood).reshape((-1, 1))
 
+        # mode_log_likelihood[mode_log_likelihood<-250] = -250
+
         p = immstate.weights
 
         ## Denominator in 6.33
         normalization_factor = np.sum(
             p*np.exp(mode_log_likelihood)
-        )
+        ) #sometimes this is 0 when the likelihoods are super low- need to make sure this doesn't happen
+        if normalization_factor == 0.0 or np.isnan(normalization_factor):
+            # import pdb;pdb.set_trace()
+            print('normalization factor 0 or nan')
+            normalization_factor = 1e-200
 
         ## Convert all terms to log
         log_norm_factor = np.log(normalization_factor)
         log_weights = np.log(p)
 
-        return np.exp(log_weights+mode_log_likelihood-log_norm_factor)
+        weights = np.exp(log_weights+mode_log_likelihood-log_norm_factor)
+
+        if weights[0] > 1000000000000000000:
+            import pdb;pdb.set_trace()
+
+        # print(normalization_factor)
+        # print(weights)
+
+        return weights
 
     
     def predict(self, immstate, u, T):
@@ -102,6 +117,8 @@ class IMM():
         mixes = self.mix_states(immstate, mixing_probs)
 
         gauss_pred = self.filter_prediction(mixes, T, u)
+        # print(gauss_pred[0].mean)
+        # print(gauss_pred[1].mean)
 
         weights = np.maximum(1e-10,weights )
         immstate = GaussianMixture(
@@ -118,6 +135,11 @@ class IMM():
         immstate = GaussianMixture(
             weights, gauss_upd
         )
+
+        gauss, _ = self.get_estimate(immstate)
+        if np.isnan(gauss.mean[0,0]):
+            gauss, _ = self.get_estimate(immstate)
+            import pdb;pdb.set_trace()
         return immstate
 
     def take_step(self, immstate, u, dt, y):

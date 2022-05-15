@@ -14,6 +14,11 @@ class EKF():
         Sigma_nxt = F@S@F.T + self.dyn_model.Q(mu,u, T)
         assert(mu.shape==mu_nxt.shape)
 
+        # print(mu_nxt)
+
+        if np.isnan(mu_nxt[0,0]):
+            import pdb;pdb.set_trace()
+
         return GaussState(mu_nxt, Sigma_nxt)
 
     def update(self, gauss_state, y):
@@ -44,7 +49,18 @@ class EKF():
         H = self.meas_model.H(mean)
         S = H@cov@H.T+self.meas_model.R(mean)
         #S = S + np.eye(S.shape[0])*1e-4
-        ll = scipy.stats.multivariate_normal.logpdf(innov.flatten(), cov=S)
+
+        # rv = multivariate_normal(np.zeros_like(y), R)
+
+        #     L = rv.pdf(y - self.meas_model.h(x))
+        try:
+            ll = scipy.stats.multivariate_normal.logpdf(innov.flatten(), cov=S, allow_singular=True)
+        except:
+            # sometimes it says S is singular when it isn't - what we can do is feed an argument allow_singular=True
+            import pdb;pdb.set_trace()
         #ll = max(-40, ll)
+
+        # if ll<-1000.:
+        #     import pdb;pdb.set_trace()
         return ll
         #res =  cov - cov@H.T@np.linalg.solve(S, H@cov)
