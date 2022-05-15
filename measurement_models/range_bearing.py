@@ -42,6 +42,6 @@ class RangeBearing():
       
         return H
 
-    def R(self, x):
+    def R(self, x=None):
         R = np.eye(self.m)*self.sigma**2
         return R

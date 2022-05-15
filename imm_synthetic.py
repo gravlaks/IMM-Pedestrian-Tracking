@@ -15,23 +15,37 @@ from read_data import read_data
 from imm.Gaussian_Mixture import GaussianMixture
 from imm.IMM import IMM
 from generate_synthetic import generate_data
+from generate_synthetic import get_data
 from plot_statistics import plot_statistics
 
+data = 'ped_dataset'
+traj_num = 0
 T = 0.1
 N = 500
 sigma_q = 0.1
 sigma_z = 0.1
 
+if data == 'synthetic':
+    dt=0.1
+    X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((6, 1)), cov0 = np.eye(6), process_noise=True, sensor_noise=False)
+    init_mean1 = np.zeros((6, 1))
+    init_mean2 = np.zeros((6, 1))
+if data == 'ped_dataset':
+    dt = 1/30
+    X, zs = get_data(traj_num, process_noise=False, sensor_noise=True)
+    N, _ = X.shape
+    init_mean1 = X[0,:]
+    init_mean2 = X[0,:]
+
+init_cov1 = np.eye((6))*1.001
+init_cov2 = np.eye((6))
+
 filters = [
     EKF(CV(sigma_q, n=2), RangeBearing(sigma_z, state_dim=6)),
     EKF(CA(sigma_q, n=2), RangeBearing(sigma_z, state_dim=6)),
 ]
-init_weights = np.ones((2, 1))/2.
 
-init_mean1 = np.zeros((6, 1))
-init_mean2 = np.zeros((6, 1))
-init_cov1 = np.eye((6))*1.001
-init_cov2 = np.eye((6))
+init_weights = np.ones((2, 1))/2.
 
 init_states = [
     GaussState(init_mean1, init_cov1),
@@ -46,8 +60,6 @@ PI = np.array([[0.95, 0.05],
              [0.05, 0.95]])
 
 imm = IMM(filters, PI)
-dt=0.1
-X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((6, 1)), cov0 = np.eye(6), process_noise=True, sensor_noise=False)
 
 gauss0, _ = imm.get_estimate(immstate)
 gaussStates = [gauss0]
@@ -85,6 +97,11 @@ for i in range(N):
         plt.annotate(T, (mus[i, 0], mus[i, 1]))
 
 plt.legend()
+plt.title('Filter vs. True Traj')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.grid(True)
+plt.axis('equal')
 
 plt.figure()
 
@@ -94,6 +111,10 @@ for i in range(model_weights.shape[1]):
          label= filters[i].dyn_model.__class__.__name__
     )
 plt.legend()
+plt.title('Model Weights')
+plt.xlabel('Time')
+plt.ylabel('Weight')
+plt.grid(True)
 
 times = dt*np.ones(N)
 times = np.cumsum(times)

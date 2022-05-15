@@ -1,10 +1,14 @@
 import sys
 import numpy as np
+import os
+import pickle
 
 from dynamics_models.CV_inc import CV
 from dynamics_models.CA import CA
 from measurement_models.range_bearing import RangeBearing
 from utils.plotting import plot_trajectory
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True):
     cv = CV(sigma=0.1)
@@ -53,13 +57,45 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True):
         else:
             z = meas.h(xcurr)
 
-        print(xcurr)
+        # print(xcurr)
         zs.append(z)
         xs.append(xcurr)
+
     return np.array(xs), np.array(zs)
 
+
+def get_data(traj_num, process_noise=True, sensor_noise=True):
+    # Get trajectory from pedestrian trajectory dataset
+    dict_file = open(os.path.join(SCRIPT_DIR,'ped_data.pkl'),"rb")
+    trajectories = pickle.load(dict_file)
+    dict_file.close()
+
+    meas = RangeBearing(sigma=0.1)
+
+
+    xs = trajectories[str(traj_num)]
+
+    N, _ = xs.shape
+
+    zs = np.array([meas.h(xs[i,:]) for i in range(N)])
+    zs = zs[:,:,0]
+
+    _, M = zs.shape
+
+    if process_noise:
+        Q = np.diag([0.005, 0.005, 0.001, 0.001, 0.0005, 0.0005])
+        xs += np.random.multivariate_normal(np.zeros(6), Q, N)
+
+    if sensor_noise:
+        zs += np.random.multivariate_normal(np.zeros(M), meas.R(), N)
+    
+    zs = zs[:,:,np.newaxis]
+
+    return xs, zs
+
 if __name__=='__main__':
-    mu0 = np.zeros((6, 1))
-    cov0 = np.eye(6)
-    xs, zs = generate_data(1000, 0.1, mu0, cov0)
+    # mu0 = np.zeros((6, 1))
+    # cov0 = np.eye(6)
+    # xs, zs = generate_data(1000, 0.1, mu0, cov0)
+    xs, zs = get_data(0, False, True)
     plot_trajectory(xs, zs)
