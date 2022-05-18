@@ -37,18 +37,31 @@ class CA():
             raise NotImplemented
 
         #https://www.kalmanfilter.net/covextrap.html#withQ
-        Q = np.eye(self.n*3)
-        Q[:self.n, :self.n] = T**4/4.*np.eye(self.n)
-        Q[:self.n, self.n:self.n*2] = T**3/2.*np.eye(self.n)
-        Q[:self.n, self.n*2:] = T**2/2.*np.eye(self.n)
+        # Q = np.eye(self.n*3)
+        # Q[:self.n, :self.n] = T**4/4.*np.eye(self.n)
+        # Q[:self.n, self.n:self.n*2] = T**3/2.*np.eye(self.n)
+        # Q[:self.n, self.n*2:] = T**2/2.*np.eye(self.n)
 
-        Q[self.n:self.n*2, :self.n] = T**3/2.*np.eye(self.n)
-        Q[self.n:self.n*2, self.n:self.n*2] = T**2*np.eye(self.n)
-        Q[self.n:self.n*2, self.n*2:] = T*np.eye(self.n)       
+        # Q[self.n:self.n*2, :self.n] = T**3/2.*np.eye(self.n)
+        # Q[self.n:self.n*2, self.n:self.n*2] = T**2*np.eye(self.n)
+        # Q[self.n:self.n*2, self.n*2:] = T*np.eye(self.n)       
 
-        Q[self.n*2:, :self.n] = T**2/2.*np.eye(self.n)
-        Q[self.n*2:, self.n:self.n*2] = T*np.eye(self.n)
-        Q[self.n*2:, self.n*2:] = np.eye(self.n)  
+        # Q[self.n*2:, :self.n] = T**2/2.*np.eye(self.n)
+        # Q[self.n*2:, self.n:self.n*2] = T*np.eye(self.n)
+        # Q[self.n*2:, self.n*2:] = np.eye(self.n)  
+
+        T5 = T**5
+        T4 = T**4
+        T3 = T**3
+        T2 = T**2
+
+        Q = np.zeros((self.n*3))
+        Q = np.array(([[T5/20, 0.0  , T4/8, 0.0 , T3/4, 0.0 ],
+                       [0.0  , T5/20, 0.0 , T4/8, 0.0 , T3/4],
+                       [T4/8 , 0.0  , T3/3, 0.0 , T2/2, 0.0 ],
+                       [0.0  , T4/8 , 0.0 , T3/3, 0.0 , T2/2],
+                       [T3/6 , 0.0  , T2/2, 0.0 , T   , 0.0 ],
+                       [0.0  , T3/6 , 0.0 , T2/2, 0.0 , T   ]]))
 
         #Q[4:, 4:]  = np.eye(2)*0.00001
         return Q*self.sigma**2

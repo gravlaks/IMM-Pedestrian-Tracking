@@ -49,7 +49,7 @@ init_weights = np.ones((2, 1))/2.
 
 init_states = [
     GaussState(init_mean1, init_cov1),
-        GaussState(init_mean2, init_cov2)]
+    GaussState(init_mean2, init_cov2)]
 
 immstate = GaussianMixture(
     init_weights, init_states
@@ -57,37 +57,40 @@ immstate = GaussianMixture(
 
 ##High probability that you stay in state
 PI = np.array([[0.95, 0.05],
-             [0.05, 0.95]])
+               [0.05, 0.95]])
 
 imm = IMM(filters, PI)
 
-gauss0, _ = imm.get_estimate(immstate)
-gaussStates = [gauss0]
-model_weights = []
+gauss0, _       = imm.get_estimate(immstate)
+gaussStates     = [gauss0]
+model_weights   = []
 for i in tqdm(range(1, N)):
 
     z = zs[i]
 
-    immstate = imm.predict(immstate,u=None, T=dt)
+    immstate       = imm.predict(immstate,u=None, T=dt)
     gauss, weights = imm.get_estimate(immstate)
     # print(gauss.mean)
-    immstate = imm.update(immstate, z)
+    immstate       = imm.update(immstate, z)
     gauss, weights = imm.get_estimate(immstate)
     # print(gauss.mean)
     gaussStates.append(gauss)
     model_weights.append(weights.flatten())
 
     
-    
-mus = []
+mus    = []
 Sigmas = []
+
 model_weights = np.array(model_weights)
 print(model_weights.shape)
+
 for gauss in gaussStates:
     mus.append(gauss.mean)
     Sigmas.append(gauss.cov)
-mus = np.array(mus)
+
+mus    = np.array(mus)
 Sigmas = np.array(Sigmas)
+
 plt.plot(X[:, 0], X[:, 1], label="GT")
 plt.plot(mus[:, 0], mus[:, 1], label="Estimate")
 print(N)
