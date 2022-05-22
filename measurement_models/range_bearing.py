@@ -11,9 +11,7 @@ class RangeBearing():
 
     def h(self, x):
         p = x[:2]
-        if p[0] == 0:
-            return np.vstack((np.linalg.norm(p), np.sign(p[1])*np.pi/2 ))
-
+        
         return np.vstack(
             (np.linalg.norm(p), 
             np.arctan2(p[1], p[0])
@@ -32,7 +30,8 @@ class RangeBearing():
         
         if r == 0: 
             return H
-        
+        assert(np.allclose((p/r).flatten(), H[0, :2])), "not close"
+
         H[1, 0] = -np.sin(theta)/r
         H[1, 1] = np.cos(theta)/r
       
