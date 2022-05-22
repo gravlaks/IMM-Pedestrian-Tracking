@@ -1,4 +1,5 @@
 import numpy as np
+from measurement_models.range_bearing import RangeBearing
 from utils.Gauss import GaussState
 import scipy.stats
 class EKF():
@@ -6,6 +7,12 @@ class EKF():
         self.dyn_model = dynamics_model
         self.meas_model = measurement_model
 
+    def wrap_angle(self, x):
+        while x>np.pi:
+            x -= np.pi*2
+        while x<=-np.pi:
+            x += np.pi*2
+        return x
     def predict(self, gauss_state, u, T):
         mu, S = gauss_state
         F = self.dyn_model.F(mu,u, T)
@@ -27,7 +34,11 @@ class EKF():
         C = self.meas_model.H(mu)
         R = self.meas_model.R(mu)
 
-
+        if isinstance(self.meas_model, RangeBearing):
+            innovation = y-y_hat
+            innovation[1] = self.wrap_angle(innovation[1])
+        else: 
+            raise Exception( "Should use RangeBearing model")
         mu_nxt = mu+S@C.T@np.linalg.solve(C@S@C.T + R, y-y_hat)
         Sigma_nxt = S - S@C.T@np.linalg.solve(C@S@C.T + R, C@S)
         assert(mu.shape==mu_nxt.shape)

@@ -2,6 +2,7 @@ from nbformat import read
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from dynamics_models.CA_7dim import CA_7dim
 from dynamics_models.CT_7dim import CT_7dim
 
 from dynamics_models.CV_inc import CV
@@ -24,10 +25,11 @@ sigma_w = 0.01
 n = 7
 
 filters = [
-    EKF(CV_7dim(sigma_q), RangeBearing(sigma_z, state_dim=n)),
+    EKF(CA_7dim(sigma_q), RangeBearing(sigma_z, state_dim=n)),
+    EKF(CA_7dim(sigma_q*0.001), RangeBearing(sigma_z*10, state_dim=n)),
     EKF(CT_7dim(sigma_q, sigma_w), RangeBearing(sigma_z, state_dim=n))
 ]
-init_weights = np.ones((2, 1))/2.
+init_weights = np.ones((len(filters), 1))/len(filters)
 init_mean1 = np.zeros((n, 1))
 init_mean2 = np.zeros((n, 1))
 init_cov1 = np.eye((n))*1.001
@@ -35,15 +37,18 @@ init_cov2 = np.eye((n))
 
 init_states = [
     GaussState(init_mean1, init_cov1),
-        GaussState(init_mean2, init_cov2)]
+    GaussState(init_mean1, init_cov1),
+    GaussState(init_mean2, init_cov2), 
+        ]
 
 immstate = GaussianMixture(
     init_weights, init_states
 )
 
 ##High probability that you stay in state
-PI = np.array([[0.95, 0.05],
-             [0.05, 0.95]])
+PI = np.array([[0.95, 0.025, 0.025],
+             [0.05, 0.95, 0.025],
+             [0.025, 0.025, 0.95]])
 
 imm = IMM(filters, PI)
 
