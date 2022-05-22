@@ -14,16 +14,18 @@ class CT_7dim():
 
     def f(self, x, u, T):
         w = x[-1]
-        T = np.zeros((7, 7))
-        T[:4, :4] = np.eye(4)
-        T[2:4, :4] = np.array([
+        if w == 0:
+            w = 0.00001
+        Transition = np.zeros((7, 7))
+        Transition[:4, :4] = np.eye(4)
+        Transition[:4, 2:4] = np.array([
             [np.sin(T*w)/w,(-1+np.cos(T*w))/w],
             [(1-np.cos(T*w))/w, np.sin(T*w)/w],
             [np.cos(T*w), -np.sin(T*w)],
             [np.sin(T*w), np.cos(T*w)]
-        ])
-        T[6, 6] = 1
-        return T@x
+        ]).reshape((-1, 2))
+        Transition[6, 6] = 1
+        return Transition@x
 
     def F(self, x, u, T):
         w = x[-1]
@@ -32,16 +34,16 @@ class CT_7dim():
         xdot, ydot = x[2], x[3]
         if w == 0:
             Jac[0:2, 2:4] = np.eye(2)*T
-            Jac[:4, 6] = np.array([-T**2*ydot/2,T**2*xdot/2, -T*ydot, T*xdot]).reshape((-1, 1))
+            Jac[:4, 6] = np.array([-T**2*ydot/2,T**2*xdot/2, -T*ydot, T*xdot]).flatten()
             Jac[6, 6] = 1
             return Jac
 
-        Jac[2:4, :4] = np.array([
+        Jac[:4, 2:4] = np.array([
             [np.sin(T*w)/w,(-1+np.cos(T*w))/w],
             [(1-np.cos(T*w))/w, np.sin(T*w)/w],
             [np.cos(T*w), -np.sin(T*w)],
             [np.sin(T*w), np.cos(T*w)]
-        ])
+        ]).reshape((-1, 2))
 
         Jac[:, 6] = np.array([ 
             1/w**2*(ydot-(T*w*ydot + xdot)*np.sin(T*w)+(T*w*xdot - ydot)*np.cos(T*w)),
@@ -72,3 +74,4 @@ class CT_7dim():
         Q[6, 6] = T*self.sigma_w
 
 
+        return Q
