@@ -3,7 +3,7 @@ import numpy as np
 from dataclasses import dataclass
 
 @dataclass
-class CT_7dim():
+class CT_7dim_alt():
     """
     n is dimension of state space
     sigma is noise 
@@ -59,18 +59,38 @@ class CT_7dim():
         return Jac
     
     def Q(self, x, u, T):
+        sa2 = self.sigma_a**2
+        w = x[-1]
+        if w == 0:
+            w = 1e-7
 
         Q = np.zeros((7, 7))
-        Q[:4, :4] = np.eye(4)
+        """
 
-        Q[:2, :2] = np.eye(2)*T**3/3
-        Q[2:4,2:4] = np.eye(2)*T
+        2*sa**2*(T*w - sin(T*w))/w**3      0      sa**2*(1 - cos(T*w))/w**2      sa**2*(T*w - sin(T*w))/w**2      
+0      2*sa**2*(T*w - sin(T*w))/w**3      sa**2*(-T*w + sin(T*w))/w**2      sa**2*(1 - cos(T*w))/w**2      
+sa**2*(1 - cos(T*w))/w**2      sa**2*(-T*w + sin(T*w))/w**2      T*sa**2      0      
+sa**2*(T*w - sin(T*w))/w**2      sa**2*(1 - cos(T*w))/w**2      0      T*sa**2
 
-        Q[0:2, 2:4] = np.eye(2)*T**2/2
-        Q[2:4, 0:2] = np.eye(2)*T**2/2
+        """
 
+        Q[0, 0] = 2*sa2*(T*w-np.sin(T*w))/w**3
+        Q[0, 2] = sa2*(1-np.cos(T*w))/w**2
+        Q[0, 3] = sa2*(T*w-np.sin(T*w))/w**2
+        Q[1, 1] = 2*sa2*(T*w-np.sin(T*w))/w**3
+        Q[1, 2] = sa2*(-T*w + np.sin(T*w))/w**2
+        Q[1, 3] = sa2*(1-np.cos(T*w))/w**2
 
-        Q[:4, :4] *= self.sigma_a**2
+        Q[2, 0] = sa2*(1-np.cos(T*w))/w**2
+        Q[2, 1] = sa2*(-T*w + np.sin(T*w))/w**2
+        Q[2, 3] = T*sa2
+
+        Q[3, 0] = sa2*(T*w - np.sin(T*w))/w**2
+        Q[3, 1] = sa2*(1-np.cos(T*w))/w**2
+        Q[3, 3] = T*sa2
+
+       
+
         Q[6, 6] = T*self.sigma_w**2
 
 

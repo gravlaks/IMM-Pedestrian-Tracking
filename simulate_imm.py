@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from dynamics_models.CA_7dim import CA_7dim
 from dynamics_models.CT_7dim import CT_7dim
+from dynamics_models.CT_7dim_alt import CT_7dim_alt
 
 from dynamics_models.CV_inc import CV
 from dynamics_models.CA import CA
@@ -27,7 +28,7 @@ n = 7
 filters = [
     EKF(CA_7dim(sigma_q), RangeBearing(sigma_z, state_dim=n)),
     EKF(CA_7dim(sigma_q*0.001), RangeBearing(sigma_z*10, state_dim=n)),
-    EKF(CT_7dim(sigma_q, sigma_w), RangeBearing(sigma_z, state_dim=n))
+    EKF(CT_7dim_alt(sigma_q, sigma_w), RangeBearing(sigma_z, state_dim=n)),
 ]
 init_weights = np.ones((len(filters), 1))/len(filters)
 init_mean1 = np.zeros((n, 1))
