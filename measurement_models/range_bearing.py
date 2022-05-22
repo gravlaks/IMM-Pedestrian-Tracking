@@ -29,9 +29,7 @@ class RangeBearing():
         H = np.zeros((2, self.state_dim))
         H[0, 0] = np.cos(theta)
         H[0, 1] = np.sin(theta)
-        if p[0] == 0:
-            H[0, 0] = 0
-            H[0, 1] = 1
+        
         if r == 0: 
             return H
         
