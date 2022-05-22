@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from sympy import *
 
 @dataclass
-class CV():
+class CV_7dim():
     """
     n is dimension of state space
     sigma is noise 

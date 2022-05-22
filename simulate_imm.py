@@ -5,6 +5,7 @@ from tqdm import tqdm
 
 from dynamics_models.CV_inc import CV
 from dynamics_models.CA import CA
+from dynamics_models.CV_7dim import CV7dim
 from measurement_models.range_only import RangeOnly
 from measurement_models.range_bearing import RangeBearing
 from filters.EKF import EKF
@@ -20,15 +21,15 @@ sigma_q = 0.1
 sigma_z = 0.1
 
 filters = [
-    EKF(CA(sigma_q, n=2), RangeBearing(sigma_z, state_dim=6)),
+    EKF(CV_7dim (sigma_q, n=2), RangeBearing(sigma_z, state_dim=6)),
     EKF(CV(sigma_q, n=2), RangeBearing(sigma_z, state_dim=6))
 ]
 init_weights = np.ones((2, 1))/2.
-
-init_mean1 = np.zeros((6, 1))
-init_mean2 = np.zeros((6, 1))
-init_cov1 = np.eye((6))*1.001
-init_cov2 = np.eye((6))
+n = 7
+init_mean1 = np.zeros((n, 1))
+init_mean2 = np.zeros((n, 1))
+init_cov1 = np.eye((n))*1.001
+init_cov2 = np.eye((n))
 
 init_states = [
     GaussState(init_mean1, init_cov1),
