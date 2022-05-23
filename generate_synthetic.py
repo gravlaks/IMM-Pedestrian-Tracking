@@ -64,20 +64,17 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True):
     return np.array(xs), np.array(zs)
 
 
-def get_data(traj_num, process_noise=True, sensor_noise=True):
+def get_data(traj_num, sensor_model, process_noise=True, sensor_noise=True):
     # Get trajectory from pedestrian trajectory dataset
     dict_file = open(os.path.join(SCRIPT_DIR,'ped_data.pkl'),"rb")
     trajectories = pickle.load(dict_file)
     dict_file.close()
 
-    meas = RangeBearing(sigma=0.1)
-
-
     xs = trajectories[str(traj_num)]
 
     N, _ = xs.shape
 
-    zs = np.array([meas.h(xs[i,:]) for i in range(N)])
+    zs = np.array([sensor_model.h(xs[i,:]) for i in range(N)])
     zs = zs[:,:,0]
 
     _, M = zs.shape
@@ -87,15 +84,16 @@ def get_data(traj_num, process_noise=True, sensor_noise=True):
         xs += np.random.multivariate_normal(np.zeros(6), Q, N)
 
     if sensor_noise:
-        zs += np.random.multivariate_normal(np.zeros(M), meas.R(), N)
+        zs += np.random.multivariate_normal(np.zeros(M), sensor_model.R(xs), N)
     
     zs = zs[:,:,np.newaxis]
 
     return xs, zs
 
 if __name__=='__main__':
+    from measurement_models.range_only import RangeOnly
     # mu0 = np.zeros((6, 1))
     # cov0 = np.eye(6)
     # xs, zs = generate_data(1000, 0.1, mu0, cov0)
-    xs, zs = get_data(0, False, True)
+    xs, zs = get_data(0, RangeOnly(sigma=0.1), False, True)
     plot_trajectory(xs, zs)

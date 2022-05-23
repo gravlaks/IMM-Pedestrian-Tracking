@@ -7,7 +7,6 @@ from dynamics_models.CV_inc import CV
 from dynamics_models.CA import CA
 from measurement_models.range_only import RangeOnly
 from measurement_models.range_bearing import RangeBearing
-# from measurement_models.range_bearing import RangeOnly
 from filters.EKF import EKF
 from filters.UKF import UKF
 from filters.iEKF import iEKF
@@ -17,7 +16,6 @@ from imm.Gaussian_Mixture import GaussianMixture
 from imm.IMM import IMM
 from generate_synthetic import generate_data
 from generate_synthetic import get_data
-from plot_statistics import plot_statistics
 
 data = 'ped_dataset'
 traj_num = 154
@@ -39,50 +37,25 @@ if data == 'ped_dataset':
     dt = 1/30
     X, zs = get_data(traj_num, sensor_model, process_noise=False, sensor_noise=True)
     N, _ = X.shape
-    init_mean1 = X[0,:]
-    init_mean2 = X[0,:]
+    init_mean = X[0,:]
 
-init_cov1 = np.eye((6))*1.001
-init_cov2 = np.eye((6))
+init_cov = np.eye((6))*1.001
 
-filters = [
-    UKF(CV(sigma_q, n=2), sensor_model),
-    UKF(CA(sigma_q, n=2), sensor_model),
-]
+filt = UKF(CA(sigma_q, n=2), RangeBearing(sigma_z, state_dim=6))
 
-n_filt = len(filters)
-init_weights = np.ones((n_filt, 1))/n_filt
+init_states = GaussState(init_mean, init_cov)
 
-init_states = [
-    GaussState(init_mean1, init_cov1),
-    GaussState(init_mean2, init_cov2)]
-
-immstate = GaussianMixture(
-    init_weights, init_states
-)
-
-##High probability that you stay in state
-PI = np.array([[0.95, 0.05],
-               [0.05, 0.95]])
-
-imm = IMM(filters, PI)
-
-gauss0, _       = imm.get_estimate(immstate)
-gaussStates     = [gauss0]
+gaussStates     = [init_states]
 model_weights   = []
 for i in tqdm(range(1, N)):
 
     z = zs[i]
 
-    immstate       = imm.predict(immstate,u=None, T=dt)
-    gauss, weights = imm.get_estimate(immstate)
+    gauss       = filt.predict(gaussStates[i-1],u=None, T=dt)
     # print(gauss.mean)
-    immstate       = imm.update(immstate, z)
-    gauss, weights = imm.get_estimate(immstate)
+    gauss       = filt.update(gauss, z)
     # print(gauss.mean)
     gaussStates.append(gauss)
-    model_weights.append(weights.flatten())
-
     
 mus    = []
 Sigmas = []
@@ -111,23 +84,5 @@ plt.xlabel('X')
 plt.ylabel('Y')
 plt.grid(True)
 plt.axis('equal')
-
-plt.figure()
-
-for i in range(model_weights.shape[1]):
-
-    plt.plot(model_weights[:,i],
-         label= filters[i].dyn_model.__class__.__name__
-    )
-plt.legend()
-plt.title('Model Weights')
-plt.xlabel('Time')
-plt.ylabel('Weight')
-plt.grid(True)
-
-times = dt*np.ones(N)
-times = np.cumsum(times)
-
-plot_statistics(times, mus.squeeze(), Sigmas.squeeze(), X.squeeze(), zs.squeeze(), ['px', 'py', 'vx', 'vy', 'th', 'dth'], 'imm', meas_states=None)
 
 plt.show()
