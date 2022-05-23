@@ -22,8 +22,6 @@ class CV():
         F = np.eye(self.n*2)
         F[:self.n, self.n:] = np.eye(self.n)*T
 
-        import pdb;pdb.set_trace()
-
         return F
     
     def Q(self, x, u, T):

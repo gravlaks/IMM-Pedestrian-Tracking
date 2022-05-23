@@ -44,8 +44,6 @@ class IMM():
         
         return mixes
     
-
-        
     def filter_prediction(self, mixed_states, dt, u):
         """
         6.31 (part 1)
@@ -72,9 +70,9 @@ class IMM():
         6.32-33
         """
         mode_log_likelihood = []
-        for gauss_mixt, filter in zip(immstate.gauss_states, self.filters):
+        for gauss_mixt, filter_ in zip(immstate.gauss_states, self.filters):
             means, covs = gauss_mixt
-            mode_log_likelihood.append(filter.loglikelihood(GaussState(means, covs), y))
+            mode_log_likelihood.append(filter_.loglikelihood(GaussState(means, covs), y))
 
         mode_log_likelihood = np.array(mode_log_likelihood).reshape((-1, 1))
 
@@ -130,7 +128,7 @@ class IMM():
         
         gauss_upd = self.filter_update(immstate.gauss_states, y)
         weights = self.update_mode_probs(immstate, y)
-        weights = np.maximum(1e-10,weights )
+        weights = np.maximum(1e-10, weights)
 
         immstate = GaussianMixture(
             weights, gauss_upd
@@ -159,6 +157,6 @@ class IMM():
             gauss.cov for gauss in immstate.gauss_states
         ], dtype=np.float32).squeeze()
         weights = immstate.weights
-        
+
         mean, cov = moments_gaussian_mixture(weights, means, covs)
         return GaussState(mean, cov), weights
