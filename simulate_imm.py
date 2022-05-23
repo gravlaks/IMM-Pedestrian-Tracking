@@ -20,16 +20,19 @@ from imm.Gaussian_Mixture import GaussianMixture
 from imm.IMM import IMM
 T = 0.1
 N = 500
-sigma_q = 0.1
-sigma_z = 0.1
-sigma_w = 0.01
+sigma_q = 0.3
+sigma_z = 0.3
+sigma_w = 0.1
 n = 7
 
 filters = [
-    EKF(CA_7dim(sigma_q), RangeBearing(sigma_z, state_dim=n)),
-    EKF(CA_7dim(sigma_q*0.001), RangeBearing(sigma_z*10, state_dim=n)),
-    EKF(CT_7dim_alt(sigma_q, sigma_w), RangeBearing(sigma_z, state_dim=n)),
+    EKF(CT_7dim(sigma_q*0.01, sigma_w*0.1), RangeBearing(sigma_z*0.5, state_dim=n)),
+    EKF(CA_7dim(sigma_q*0.01), RangeBearing(sigma_z*1, state_dim=n)),
+    EKF(CA_7dim(sigma_q*0.01), RangeBearing(sigma_z*0.5, state_dim=n)),
+    EKF(CA_7dim(sigma_q*0.05), RangeBearing(sigma_z*0.5, state_dim=n)),
+    EKF(CT_7dim(sigma_q, sigma_w), RangeBearing(sigma_z, state_dim=n)),
 ]
+
 init_weights = np.ones((len(filters), 1))/len(filters)
 init_mean1 = np.zeros((n, 1))
 init_mean2 = np.zeros((n, 1))
@@ -37,6 +40,8 @@ init_cov1 = np.eye((n))*1.001
 init_cov2 = np.eye((n))
 
 init_states = [
+    GaussState(init_mean1, init_cov1),
+    GaussState(init_mean1, init_cov1),
     GaussState(init_mean1, init_cov1),
     GaussState(init_mean1, init_cov1),
     GaussState(init_mean2, init_cov2), 
@@ -47,9 +52,11 @@ immstate = GaussianMixture(
 )
 
 ##High probability that you stay in state
-PI = np.array([[0.95, 0.025, 0.025],
-             [0.05, 0.95, 0.025],
-             [0.025, 0.025, 0.95]])
+PI = np.array([[0.95, 0.01, 0.01, 0.01, 0.02],
+             [0.02, 0.95, 0.01, 0.01, 0.01],
+             [0.02, 0.01, 0.95, 0.01, 0.01],
+             [0.02, 0.01, 0.01, 0.95, 0.01],
+             [0.02, 0.01, 0.01, 0.01, 0.95]])
 
 imm = IMM(filters, PI)
 
