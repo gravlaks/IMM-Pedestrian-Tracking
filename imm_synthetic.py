@@ -3,8 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from dynamics_models.CV_inc import CV
-from dynamics_models.CA import CA
+from dynamics_models.CV_7dim import CV_7dim
+from dynamics_models.CA_7dim import CA_7dim
+from dynamics_models.CT_7dim import CT_7dim
 from measurement_models.range_only import RangeOnly
 from measurement_models.range_bearing import RangeBearing
 # from measurement_models.range_bearing import RangeOnly
@@ -19,23 +20,27 @@ from generate_synthetic import generate_data
 from generate_synthetic import get_data
 from plot_statistics import plot_statistics
 
-data = 'ped_dataset'
+data = 'synthetic'
 traj_num = 154
 T = 0.1
 N = 500
 sigma_q = 0.1
 sigma_z = 0.1
+sigma_a = 0.1
+sigma_w = 0.01
 
 np.random.seed(seed=1)
 
-sensor_model = RangeBearing(sigma_z, state_dim=6)
+sensor_model = RangeBearing(sigma_z, state_dim=7)
 
 if data == 'synthetic':
     dt=0.1
-    # X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((6, 1)), cov0 = np.eye(6), process_noise=False, sensor_noise=False)
-    X, zs = (np.load('x_save.npy'), np.load('z_save.npy'))
-    init_mean1 = np.zeros((6, 1))
-    init_mean2 = np.zeros((6, 1))
+    # X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((7, 1)), cov0 = np.eye(7), process_noise=False, sensor_noise=False)
+    X, zs, switches = (np.load('x.npy'), np.load('z.npy'), np.load('switches.npy'))
+    print(switches*dt)
+    init_mean1 = np.zeros((7, 1))
+    init_mean2 = np.zeros((7, 1))
+    N = len(X)
 if data == 'ped_dataset':
     dt = 1/30
     X, zs = get_data(traj_num, sensor_model, process_noise=False, sensor_noise=True)
@@ -43,12 +48,16 @@ if data == 'ped_dataset':
     init_mean1 = X[0,:]
     init_mean2 = X[0,:]
 
-init_cov1 = np.eye((6))*1.001
-init_cov2 = np.eye((6))
+init_cov1 = np.eye((7))*1.001
+init_cov2 = np.eye((7))
 
+# filters = [
+#     UKF(CV(sigma_q, n=2), sensor_model),
+#     UKF(CA(sigma_q, n=2), sensor_model),
+# ]
 filters = [
-    UKF(CV(sigma_q, n=2), sensor_model),
-    UKF(CA(sigma_q, n=2), sensor_model),
+    EKF(CV_7dim(sigma_q), sensor_model),
+    EKF(CT_7dim(sigma_a=sigma_a, sigma_w=sigma_w), sensor_model),
 ]
 
 n_filt = len(filters)
@@ -129,6 +138,6 @@ plt.grid(True)
 times = dt*np.ones(N)
 times = np.cumsum(times)
 
-plot_statistics(times, mus.squeeze(), Sigmas.squeeze(), X.squeeze(), zs.squeeze(), ['px', 'py', 'vx', 'vy', 'th', 'dth'], 'imm', meas_states=None)
+plot_statistics(times, mus.squeeze(), Sigmas.squeeze(), X.squeeze(), zs.squeeze(), ['px', 'py', 'vx', 'vy', 'ax', 'ay', 'w'], 'imm', meas_states=None)
 
 plt.show()

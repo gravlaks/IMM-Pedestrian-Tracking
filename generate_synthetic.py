@@ -24,6 +24,8 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
         cv_model=True
     elif run_model == 'CA':
         cv_model=False
+    elif run_model == 'CT':
+        cv_model = False
     else:
         cv_model=True
     z0 = np.array([0, 0]).reshape((-1, 1))
@@ -53,14 +55,15 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
                 cv_model = not cv_model
 
                 if not cv_model:
-                    xcurr[4:] = np.random.randn(3).reshape(-1, 1)
+                    xcurr[4:6] = np.random.randn(2).reshape(-1, 1)
+                    xcurr[6] = 1e-2*np.random.randn(1).reshape(-1, 1)
 
                 switches.append(i)
 
         if cv_model:
             dyn = cv
         else:
-            dyn = ca # TURN THIS BW CT, CA
+            dyn = ct # TURN THIS BW CT, CA
 
         if process_noise:
             xcurr = np.random.multivariate_normal(dyn.f(xcurr, u=None, T=dt).flatten(), dyn.Q(xcurr, u=None, T=dt)).reshape((-1, 1))
@@ -75,7 +78,7 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
         zs.append(z)
         xs.append(xcurr)
 
-    return np.array(xs), np.array(zs)
+    return np.array(xs), np.array(zs), switches
 
 
 def get_data(traj_num, sensor_model, process_noise=True, sensor_noise=True):
@@ -106,13 +109,14 @@ def get_data(traj_num, sensor_model, process_noise=True, sensor_noise=True):
 
 if __name__=='__main__':
     from measurement_models.range_only import RangeOnly
-    # mu0 = np.zeros((7, 1))
-    # cov0 = np.eye(7)
-    # xs, zs = generate_data(1000, 0.1, mu0, cov0, process_noise=True, sensor_noise=True, run_model='CA')
+    mu0 = np.zeros((7, 1))
+    cov0 = np.eye(7)
+    xs, zs, switches = generate_data(1000, 0.1, mu0, cov0, process_noise=True, sensor_noise=True, run_model='SWITCH')
     # # xs, zs = get_data(0, process_noise=False, sensor_noise=False)
     # # import pdb;pdb.set_trace()
     # plot_trajectory(xs, zs)
-    # np.save('x.npy', xs)
-    # np.save('z.npy', zs)
-    xs, zs = get_data(0, RangeOnly(sigma=0.1), False, True)
+    np.save('x.npy', xs)
+    np.save('z.npy', zs)
+    np.save('switches.npy', switches)
+    # xs, zs = get_data(0, RangeOnly(sigma=0.1), False, True)
     plot_trajectory(xs, zs)

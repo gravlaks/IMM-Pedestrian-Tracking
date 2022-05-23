@@ -33,7 +33,9 @@ class RangeBearing():
         
         if r == 0: 
             return H
-        assert(np.allclose((p/r).flatten(), H[0, :2])), "not close"
+        # print(p/r)
+        # print(H[0, :2])
+        assert(np.linalg.norm((p/r).flatten() - H[0, :2])<1e-4, "not close")
 
         H[1, 0] = -np.sin(theta)/r
         H[1, 1] = np.cos(theta)/r

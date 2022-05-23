@@ -36,7 +36,6 @@ if data == 'synthetic':
     dt=0.1
     # X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((7, 1)), cov0 = np.eye(7), process_noise=True, sensor_noise=True, run_model=filter_model)
     X, zs = (np.load('x.npy'), np.load('z.npy'))
-    import pdb;pdb.set_trace()
     init_mean1 = (X[0] + np.random.randn(7, 1)).reshape(-1, 1)
     init_mean1[2:] = np.array([[0], [0], [0], [0], [0]])
 if data == 'ped_dataset':
