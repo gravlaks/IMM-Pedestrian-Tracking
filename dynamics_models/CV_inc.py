@@ -13,8 +13,7 @@ class CV():
 
     def f(self, x, u, T):
 
-        F = np.eye(self.n*3)
-        F[:self.n, self.n:self.n*2] = np.eye(self.n)*T
+        F = self.F(x, u, T)
 
         return F@x
 
@@ -22,6 +21,7 @@ class CV():
 
         F = np.eye(self.n*3)
         F[:self.n, self.n:self.n*2] = np.eye(self.n)*T
+        F[2*self.n:, 2*self.n:] = np.zeros((self.n, self.n))
 
         return F
     

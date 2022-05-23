@@ -42,6 +42,8 @@ class EKF():
         mu_nxt = mu+S@C.T@np.linalg.solve(C@S@C.T + R, y-y_hat)
         Sigma_nxt = S - S@C.T@np.linalg.solve(C@S@C.T + R, C@S)
         assert(mu.shape==mu_nxt.shape)
+        if np.isnan(mu_nxt[0,0]):
+            import pdb;pdb.set_trace()
         return GaussState(mu_nxt, Sigma_nxt)
     
     def loglikelihood(self, gauss_state, y):

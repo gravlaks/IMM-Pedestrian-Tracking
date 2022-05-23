@@ -20,4 +20,5 @@ def plot(x_GT, gauss_est):
 
 def plot_trajectory(xs, zs):
     plt.plot(xs[1:, 0], xs[1:, 1], label="X")
+    # plt.scatter(zs[1:, 0], zs[1:, 1], c='r', s=3, label='z')
     plt.show()

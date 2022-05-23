@@ -14,25 +14,44 @@ def plot_statistics(times, mu, Sigma, x, y, titles, savestr, meas_states=None):
 
     max_t = times[-1]
 
-    fig, ax = plt.subplots(n, 1)
+    for j in range(3):
+
+        fig, ax = plt.subplots(2, 1)
+        fig.set_tight_layout(True)
+
+        if meas_states:
+            #TODO - associating measurements with certain states so we can plot measurements only for measured quantities
+            raise NotImplementedError
+
+        for k, i in enumerate(range(2*j, 2*j+2)):
+            ax[k].fill_between(times, mu[:, i]-1.96*np.sqrt(Sigma[:, i, i]), mu[:, i]+1.96*np.sqrt(Sigma[:, i, i]), color='b', alpha=0.1, label='95%% Confidence')
+            # if len(y[0]) > i:
+            #     ax[i].scatter(times, y[:, i], c='r', s=8, label='meas')
+            ax[k].plot(times, x[:, i], 'k', label='truth')
+            ax[k].plot(times, mu[:, i], 'r', label='mean estimate')
+            ax[k].legend()
+            ax[k].set_title(f'{savestr} {titles[i]} statistics for {int(np.ceil(max_t))} seconds')
+            ax[k].set_ylabel(f'{titles[i]}')
+
+            if i==n-1:
+
+                ax[k].set_xlabel('time')
+        if savestr:
+            plt.savefig(f'{savestr}_{j}.png')
+
+    fig, ax = plt.subplots()
     fig.set_tight_layout(True)
 
-    if meas_states:
-        #TODO - associating measurements with certain states so we can plot measurements only for measured quantities
-        raise NotImplementedError
+    i = -1
 
-    for i in range(n):
-        ax[i].fill_between(times, mu[:, i]-1.96*np.sqrt(Sigma[:, i, i]), mu[:, i]+1.96*np.sqrt(Sigma[:, i, i]), color='b', alpha=0.1, label='95%% Confidence')
-        # if len(y[0]) > i:
-        #     ax[i].scatter(times, y[:, i], c='r', s=8, label='meas')
-        ax[i].plot(times, x[:, i], 'k', label='truth')
-        ax[i].plot(times, mu[:, i], 'r', label='mean estimate')
-        ax[i].legend()
-        ax[i].set_title(f'{savestr} {titles[i]} statistics for {int(np.ceil(max_t))} seconds')
-        ax[i].set_ylabel(f'{titles[i]}')
-
-        if i==n-1:
-
-            ax[i].set_xlabel('time')
+    ax.fill_between(times, mu[:, i]-1.96*np.sqrt(Sigma[:, i, i]), mu[:, i]+1.96*np.sqrt(Sigma[:, i, i]), color='b', alpha=0.1, label='95%% Confidence')
+    # if len(y[0]) > i:
+    #     ax[i].scatter(times, y[:, i], c='r', s=8, label='meas')
+    ax.plot(times, x[:, i], 'k', label='truth')
+    ax.plot(times, mu[:, i], 'r', label='mean estimate')
+    ax.legend()
+    ax.set_title(f'{savestr} {titles[i]} statistics for {int(np.ceil(max_t))} seconds')
+    ax.set_ylabel(f'{titles[i]}')
+    ax.set_xlabel('time')
     if savestr:
-        plt.savefig(f'{savestr}.png')
+        plt.savefig(f'{savestr}_4.png')

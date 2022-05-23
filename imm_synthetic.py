@@ -32,7 +32,8 @@ sensor_model = RangeBearing(sigma_z, state_dim=6)
 
 if data == 'synthetic':
     dt=0.1
-    X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((6, 1)), cov0 = np.eye(6), process_noise=True, sensor_noise=False)
+    # X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((6, 1)), cov0 = np.eye(6), process_noise=False, sensor_noise=False)
+    X, zs = (np.load('x_save.npy'), np.load('z_save.npy'))
     init_mean1 = np.zeros((6, 1))
     init_mean2 = np.zeros((6, 1))
 if data == 'ped_dataset':

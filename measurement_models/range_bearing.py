@@ -21,7 +21,10 @@ class RangeBearing():
     def H(self, x):
         #http://www.cs.cmu.edu/~16385/s17/Slides/16.4_Extended_Kalman_Filter.pdf
         p = x[:2]
-        
+        # if p[0] == 0:
+        #     theta = np.sign(p[1])*np.pi/2
+        # else:
+        #     theta = np.arctan(p[1]/p[0])
         theta = np.arctan2(p[1], p[0])
         r = np.linalg.norm(p)
         H = np.zeros((2, self.state_dim))

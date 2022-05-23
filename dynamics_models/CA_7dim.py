@@ -15,20 +15,45 @@ class CA_7dim():
 
         F = self.F(x, u, T) 
 
+        # compensating
+        w = x[-1]
+        dx = x[2]
+        dy = x[3]
+        ddx = x[4]
+        ddy = x[5]
+        denom = dx**2 + dy**2
+        if not denom == 0:
+            F[6,6] = (-ddx*dy + ddy*dx)/denom
         return F@x
 
     def F(self, x,u,T):
         F = np.zeros((7, 7))
         F[:6, :6] = np.eye(self.n*3)
 
+        x = x.reshape(-1, 1)
+        dx = x[2][0]
+        dy = x[3][0]
+        ddx = x[4][0]
+        ddy = x[5][0]
+
         if u is None:
             F[:self.n, self.n:self.n*2] = np.eye(self.n)*T
             F[:self.n, self.n*2:self.n*3] = np.eye(self.n)*T**2/2
             F[self.n:self.n*2, self.n*2:self.n*3] = np.eye(self.n)*T
         else:
-            F[:self.n, self.n:self.n*2] = np.eye(self.n)*T
-            F[:self.n, self.n*2:self.n*3] = u@np.eye(self.n)*T**2/2
-            F[self.n:self.n*2, self.n*2:self.n*3] = u@np.eye(self.n)*T
+            raise Exception('u is not None')
+
+        denom = dx**2 + dy**2
+
+        if not denom == 0:
+
+            F[6] = np.array([[0, 
+                              0, 
+                              ddy/denom - (ddy*dx-ddx*dy)*2*dx/denom**2, 
+                              -ddx/denom + (ddx*dy-ddy*dx)*2*dy/denom**2, 
+                              -dy/denom,
+                              dx/denom,
+                              0]])
 
         return F
     
