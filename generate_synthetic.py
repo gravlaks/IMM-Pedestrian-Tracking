@@ -13,9 +13,9 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_model='SWITCH'):
     cv = CV_7dim(sigma=0.1)
-    ca = CA_7dim(sigma=0.1)
+    ca = CA_7dim(sigma=0.05)
     ct = CT_7dim(sigma_a=0.1, sigma_w=0.01)
-    meas = RangeBearing(sigma=0.1)
+    meas = RangeBearing(sigma_r=0.1, sigma_th=0.01)
 
     # x0 = np.array([1, 2, 1, 2, 1, 2]).reshape((-1, 1))
     x0 = np.random.randn(7, 1)
@@ -38,7 +38,7 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
 
         #Change model 
         if run_model=='SWITCH':
-            if i%200==0:
+            if i%500==0:
                 # if cv_model:
                 #     xcurr[2:4] = np.zeros((2, 1))
 
@@ -55,8 +55,8 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
                 cv_model = not cv_model
 
                 if not cv_model:
-                    xcurr[4:6] = np.random.randn(2).reshape(-1, 1)
-                    xcurr[6] = 1e-2*np.random.randn(1).reshape(-1, 1)
+                    # xcurr[4:6] = np.random.randn(2).reshape(-1, 1)
+                    xcurr[6] = np.random.randn(1).reshape(-1, 1)
 
                 switches.append(i)
 
@@ -64,6 +64,8 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
             dyn = cv
         else:
             dyn = ct # TURN THIS BW CT, CA
+
+        # print(dyn)
 
         if process_noise:
             xcurr = np.random.multivariate_normal(dyn.f(xcurr, u=None, T=dt).flatten(), dyn.Q(xcurr, u=None, T=dt)).reshape((-1, 1))

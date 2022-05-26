@@ -25,21 +25,26 @@ traj_num = 154
 T = 0.1
 N = 500
 sigma_q = 0.1
-sigma_z = 0.1
-sigma_a = 0.1
+sigma_r = 0.1
+sigma_th = 0.01
+sigma_a = 0.05
 sigma_w = 0.01
 
-np.random.seed(seed=1)
+# np.random.seed(seed=1)
 
-sensor_model = RangeBearing(sigma_z, state_dim=7)
+sensor_model = RangeBearing(sigma_r, sigma_th, state_dim=7)
 
 if data == 'synthetic':
     dt=0.1
     # X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((7, 1)), cov0 = np.eye(7), process_noise=False, sensor_noise=False)
     X, zs, switches = (np.load('x.npy'), np.load('z.npy'), np.load('switches.npy'))
     print(switches*dt)
-    init_mean1 = np.zeros((7, 1))
-    init_mean2 = np.zeros((7, 1))
+    # init_mean1 = np.zeros((7, 1))
+    # init_mean2 = np.zeros((7, 1))
+    init_mean1 = (X[0] + np.random.randn(7, 1)).reshape(-1, 1)
+    init_mean1[2:] = np.array([[0], [0], [0], [0], [0]])
+    init_mean2 = (X[0] + np.random.randn(7, 1)).reshape(-1, 1)
+    init_mean2[2:] = np.array([[0], [0], [0], [0], [0]])
     N = len(X)
 if data == 'ped_dataset':
     dt = 1/30
