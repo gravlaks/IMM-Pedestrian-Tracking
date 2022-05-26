@@ -5,7 +5,8 @@ from dataclasses import dataclass
 @dataclass
 class RangeBearing():
     
-    sigma: float
+    sigma_r: float
+    sigma_th: float
     m: int = 2
     state_dim: int = 2
 
@@ -43,5 +44,7 @@ class RangeBearing():
         return H
 
     def R(self, x=None):
-        R = np.eye(self.m)*self.sigma**2
+        R = np.eye(self.m)
+        R[0,0] = self.sigma_r**2
+        R[1,1] = self.sigma_th**2
         return R

@@ -23,13 +23,14 @@ from utils.plotting import plot_trajectory
 np.random.seed(13)
 
 data = 'synthetic'
-filter_model = 'CA' #options: CV, CT, CA
+filter_model = 'CT' #options: CV, CT, CA
 traj_num = 0
 T = 0.1
 N = 1000
-sigma_q = 0.1
-sigma_z = 0.1
-sigma_a = 0.1
+sigma_q = 0.01
+sigma_r = 0.1
+sigma_th = 0.01
+sigma_a = 0.05
 sigma_w = 0.01
 
 if data == 'synthetic':
@@ -48,11 +49,13 @@ if data == 'ped_dataset':
 init_cov1 = np.eye((7))*1e-1
 
 if filter_model == 'CV':
-    filters = EKF(CV_7dim(sigma_q), RangeBearing(sigma_z, state_dim=7))
+    filters = EKF(CV_7dim(sigma_q), RangeBearing(sigma_r, sigma_th, state_dim=7))
 elif filter_model=='CA':
-    filters = EKF(CA_7dim(sigma_q), RangeBearing(sigma_z, state_dim=7))
+    filters = EKF(CA_7dim(sigma_q), RangeBearing(sigma_r, sigma_th, state_dim=7))
 elif filter_model=='CT':
-    filters = EKF(CT_7dim(sigma_a=sigma_a, sigma_w=sigma_w), RangeBearing(sigma_z, state_dim=7))
+    # filters = EKF(CA_7dim(sigma_q), RangeBearing(sigma_z, state_dim=7))
+    # filters = EKF(CV_7dim(sigma_q), RangeBearing(sigma_z, state_dim=7))
+    filters = EKF(CT_7dim(sigma_a=sigma_a, sigma_w=sigma_w), RangeBearing(sigma_r, sigma_th, state_dim=7))
 
 gauss0 = GaussState(init_mean1, init_cov1)
 
