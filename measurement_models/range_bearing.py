@@ -31,7 +31,7 @@ class RangeBearing():
         H = np.zeros((2, self.state_dim))
         H[0, 0] = np.cos(theta)
         H[0, 1] = np.sin(theta)
-        
+
         if r == 0: 
             return H
         # print(p/r)
@@ -40,6 +40,13 @@ class RangeBearing():
 
         H[1, 0] = -np.sin(theta)/r
         H[1, 1] = np.cos(theta)/r
+
+        eta = 1/(1+(p[1]/p[0])**2)
+
+        bearing0 = -eta*p[1]/p[0]**2
+        bearing1 = eta/p[0]
+
+        assert np.abs(bearing0-H[1,0])<1e-4 and np.abs(bearing1-H[1,1])<1e-4
       
         return H
 

@@ -105,9 +105,14 @@ for i in tqdm(range(1, N)):
     immstate       = imm.predict(immstate,u=None, T=dt)
     gauss, weights = imm.get_estimate(immstate)
     # print(gauss.mean)
+    # print(np.diag(gauss.cov))
+    # if np.any(np.diag(gauss.cov)<0):
+    # 	print('neg')
     immstate       = imm.update(immstate, z)
     gauss, weights = imm.get_estimate(immstate)
     # print(gauss.mean)
+    # if np.any(np.diag(gauss.cov)<0):
+    # 	print('neg')
     gaussStates.append(gauss)
     model_weights.append(weights.flatten())
 

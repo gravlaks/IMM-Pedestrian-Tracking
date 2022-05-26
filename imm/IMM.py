@@ -2,6 +2,10 @@ from random import gauss
 import numpy as np
 from utils.Gauss import GaussState, moments_gaussian_mixture
 from imm.Gaussian_Mixture import GaussianMixture
+from dynamics_models.CA_7dim import CA_7dim
+from dynamics_models.CV_7dim import CV_7dim
+from dynamics_models.CT_7dim import CT_7dim
+
 class IMM():
     def __init__(self, filters, pi):
         self.filters = filters
@@ -17,8 +21,21 @@ class IMM():
         mu = pi*p
         mu = mu/(pi.T@p)
 
-
         return mu, pi.T@p
+
+    def get_dyn_types(self):
+        dyn_models = [fil.dyn_model for fil in self.filters]
+        dyn_type = []
+
+        for dyn in dyn_models:
+            if isinstance(dyn, CA_7dim):
+                dyn_type.append('CA')
+            elif isinstance(dyn, CV_7dim):
+                dyn_type.append('CV')
+            elif isinstance(dyn, CT_7dim):
+                dyn_type.append('CT')
+
+        return dyn_type
 
     def mix_states(self, immstate, mu_probs):
         """
@@ -36,7 +53,7 @@ class IMM():
 
         mixes = []
         for mu_prob in mu_probs:
-            mean, cov = moments_gaussian_mixture(mu_prob.reshape((-1, 1)), means, covs)
+            mean, cov = moments_gaussian_mixture(mu_prob.reshape((-1, 1)), means, covs, self.get_dyn_types())
 
             mixes.append(GaussState(mean, cov))
 
@@ -59,8 +76,8 @@ class IMM():
     def filter_update(self, mixed_states, y):
         
         upd = []
-        for state, filter in zip(mixed_states, self.filters):
-            upd.append(filter.update(state, y))
+        for state, filter_ in zip(mixed_states, self.filters):
+            upd.append(filter_.update(state, y))
 
         upd = np.array(upd)
         return upd
@@ -76,18 +93,22 @@ class IMM():
 
         mode_log_likelihood = np.array(mode_log_likelihood).reshape((-1, 1))
 
-        # mode_log_likelihood[mode_log_likelihood<-250] = -250
+        mode_log_likelihood[mode_log_likelihood<-500] = -500
 
         p = immstate.weights
 
         ## Denominator in 6.33
         normalization_factor = np.sum(
             p*np.exp(mode_log_likelihood)
-        ) #sometimes this is 0 when the likelihoods are super low- need to make sure this doesn't happen
+        ) 
+        # log_norm_factor = np.log(p)+mode_log_likelihood #sometimes this is 0 when the likelihoods are super low- need to make sure this doesn't happen
         if normalization_factor == 0.0 or np.isnan(normalization_factor):
             # import pdb;pdb.set_trace()
             print('normalization factor 0 or nan')
             normalization_factor = 1e-200
+            # weights = np.ones_like(immstate.weights)/len(immstate.weights)
+            # weights = -p*1/mode_log_likelihood
+            # return p
 
         ## Convert all terms to log
         log_norm_factor = np.log(normalization_factor)
@@ -118,7 +139,7 @@ class IMM():
         # print(gauss_pred[0].mean)
         # print(gauss_pred[1].mean)
 
-        weights = np.maximum(1e-10,weights )
+        # weights = np.maximum(1e-10,weights )
         immstate = GaussianMixture(
             weights, gauss_pred
         )
@@ -127,8 +148,12 @@ class IMM():
     def update(self, immstate, y):
         
         gauss_upd = self.filter_update(immstate.gauss_states, y)
-        weights = self.update_mode_probs(immstate, y)
-        weights = np.maximum(1e-10, weights)
+        # if np.any(np.diag(gauss_upd[0].cov)<0) or np.any(np.diag(gauss_upd[1].cov)<0):
+        #     import pdb;pdb.set_trace()
+        weights = self.update_mode_probs(immstate, y)   
+        # weights = np.maximum(1e-10, weights)
+        # if np.any(weights<1e-9):
+        #     print(weights)
 
         immstate = GaussianMixture(
             weights, gauss_upd
@@ -158,5 +183,5 @@ class IMM():
         ], dtype=np.float32).squeeze()
         weights = immstate.weights
 
-        mean, cov = moments_gaussian_mixture(weights, means, covs)
+        mean, cov = moments_gaussian_mixture(weights, means, covs, self.get_dyn_types())
         return GaussState(mean, cov), weights
