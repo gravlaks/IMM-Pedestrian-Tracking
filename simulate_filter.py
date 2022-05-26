@@ -15,7 +15,7 @@ from read_data import read_data
 from imm.Gaussian_Mixture import GaussianMixture
 from imm.IMM import IMM
 from generate_synthetic import generate_data
-from generate_synthetic import get_data
+from get_ped_data import get_data
 
 data = 'ped_dataset'
 traj_num = 154
@@ -41,7 +41,7 @@ if data == 'ped_dataset':
 
 init_cov = np.eye((6))*1.001
 
-filt = UKF(CA(sigma_q, n=2), RangeBearing(sigma_z, state_dim=6))
+filt = EKF(CA(sigma_q, n=2), RangeBearing(sigma_z, state_dim=6))
 
 init_states = GaussState(init_mean, init_cov)
 

@@ -82,43 +82,15 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
 
     return np.array(xs), np.array(zs), switches
 
-
-def get_data(traj_num, sensor_model, process_noise=True, sensor_noise=True):
-    # Get trajectory from pedestrian trajectory dataset
-    dict_file = open(os.path.join(SCRIPT_DIR,'ped_data.pkl'),"rb")
-    trajectories = pickle.load(dict_file)
-    dict_file.close()
-
-    xs = trajectories[str(traj_num)]
-
-    N, _ = xs.shape
-
-    zs = np.array([sensor_model.h(xs[i,:]) for i in range(N)])
-    zs = zs[:,:,0]
-
-    _, M = zs.shape
-
-    if process_noise:
-        Q = np.diag([0.005, 0.005, 0.001, 0.001, 0.0005, 0.0005])
-        xs += np.random.multivariate_normal(np.zeros(7), Q, N)
-
-    if sensor_noise:
-        zs += np.random.multivariate_normal(np.zeros(M), sensor_model.R(xs), N)
-    
-    zs = zs[:,:,np.newaxis]
-
-    return xs, zs
-
 if __name__=='__main__':
     from measurement_models.range_only import RangeOnly
     mu0 = np.zeros((7, 1))
     cov0 = np.eye(7)
     xs, zs, switches = generate_data(1000, 0.1, mu0, cov0, process_noise=True, sensor_noise=True, run_model='SWITCH')
-    # # xs, zs = get_data(0, process_noise=False, sensor_noise=False)
     # # import pdb;pdb.set_trace()
     # plot_trajectory(xs, zs)
     np.save('x.npy', xs)
     np.save('z.npy', zs)
     np.save('switches.npy', switches)
-    # xs, zs = get_data(0, RangeOnly(sigma=0.1), False, True)
     plot_trajectory(xs, zs)
+    # plot_trajectory(xs, zs)

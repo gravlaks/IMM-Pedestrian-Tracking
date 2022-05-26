@@ -17,7 +17,7 @@ from read_data import read_data
 from imm.Gaussian_Mixture import GaussianMixture
 from imm.IMM import IMM
 from generate_synthetic import generate_data
-from generate_synthetic import get_data
+from get_ped_data import get_data
 from plot_statistics import plot_statistics
 
 data = 'synthetic'
