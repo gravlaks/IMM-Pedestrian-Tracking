@@ -12,7 +12,7 @@ from utils.plotting import plot_trajectory
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_model='SWITCH'):
-    cv = CV_7dim(sigma=0.1)
+    cv = CV_7dim(sigma=0.01)
     ca = CA_7dim(sigma=0.05)
     ct = CT_7dim(sigma_a=0.1, sigma_w=0.01)
     meas = RangeBearing(sigma_r=0.1, sigma_th=0.01)

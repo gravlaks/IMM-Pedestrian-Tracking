@@ -12,15 +12,31 @@ class GaussState:
         return iter((self.mean, self.cov))
 
 
-def moments_gaussian_mixture(weights, means, covs):
+def moments_gaussian_mixture(weights, means, covs, dyn_type):
     """
     6.19-6.21 in Brekke
     weights: M, 1
     means: M, n
     covs: M, n, n
     """
+
+    weights_flat = weights.flatten()
+
     mean_bar = np.average(means, weights=weights.flatten(), axis=0).reshape((-1, 1))
     cov_left = np.average(covs, weights=weights.flatten(), axis=0)
+
+    idx_ct = [i for i in range(len(dyn_type)) if dyn_type[i]=='CT']
+    idx_ca = [i for i in range(len(dyn_type)) if dyn_type[i]=='CA']
+
+    if len(idx_ct) > 0 and len(idx_ca) ==0:
+        mean_bar[4:, :] = means[idx_ct, 4:].T
+        cov_left[4:, 4:] = covs[idx_ct, 4:, 4:]
+    elif len(idx_ca) > 0 and len(idx_ct) ==0:
+        mean_bar[4:, :] = means[idx_ca, 4:].T
+        cov_left[4:, 4:] = covs[idx_ca, 4:, 4:]
+    elif len(idx_ct) == 0 and len(idx_ca) == 0:
+        pass
+        
 
     #spread of innovations
 

@@ -24,11 +24,11 @@ data = 'synthetic'
 traj_num = 154
 T = 0.1
 N = 500
-sigma_q = 0.1
+sigma_q = 0.15
 sigma_r = 0.1
-sigma_th = 0.01
-sigma_a = 0.05
-sigma_w = 0.01
+sigma_th = 0.02
+sigma_a = 0.1
+sigma_w = 0.02
 
 # np.random.seed(seed=1)
 
@@ -92,9 +92,14 @@ for i in tqdm(range(1, N)):
     immstate       = imm.predict(immstate,u=None, T=dt)
     gauss, weights = imm.get_estimate(immstate)
     # print(gauss.mean)
+    # print(np.diag(gauss.cov))
+    # if np.any(np.diag(gauss.cov)<0):
+    # 	print('neg')
     immstate       = imm.update(immstate, z)
     gauss, weights = imm.get_estimate(immstate)
     # print(gauss.mean)
+    # if np.any(np.diag(gauss.cov)<0):
+    # 	print('neg')
     gaussStates.append(gauss)
     model_weights.append(weights.flatten())
 
