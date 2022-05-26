@@ -36,7 +36,9 @@ def moments_gaussian_mixture(weights, means, covs, dyn_type):
         cov_left[4:, 4:] = covs[idx_ca, 4:, 4:]
     elif len(idx_ct) == 0 and len(idx_ca) == 0:
         pass
-        
+    else:
+        print('averaging accelerations and omega for CT and CA together not yet implemented')
+
 
     #spread of innovations
 
