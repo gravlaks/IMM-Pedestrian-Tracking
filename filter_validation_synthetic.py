@@ -23,10 +23,10 @@ from utils.plotting import plot_trajectory
 np.random.seed(13)
 
 data = 'synthetic'
-filter_model = 'CT' #options: CV, CT, CA
+filter_model = 'CA' #options: CV, CT, CA
 traj_num = 0
 T = 0.1
-N = 1000
+
 sigma_q = 0.01
 sigma_r = 0.1
 sigma_th = 0.01
@@ -37,6 +37,7 @@ if data == 'synthetic':
     dt=0.1
     # X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((7, 1)), cov0 = np.eye(7), process_noise=True, sensor_noise=True, run_model=filter_model)
     X, zs = (np.load('x.npy'), np.load('z.npy'))
+    N = X.shape[0]
     init_mean1 = (X[0] + np.random.randn(7, 1)).reshape(-1, 1)
     init_mean1[2:] = np.array([[0], [0], [0], [0], [0]])
 if data == 'ped_dataset':

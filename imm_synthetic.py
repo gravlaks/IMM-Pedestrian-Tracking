@@ -24,10 +24,15 @@ data = 'synthetic'
 traj_num = 154
 T = 0.1
 N = 500
-sigma_q = 0.1
-sigma_r = 0.1
-sigma_th = 0.01
-sigma_a = 0.05
+
+#cv
+sigma_q = 0.2
+
+#measurement noise
+sigma_r = 0.5
+sigma_th = 0.05
+
+sigma_a = 0.25
 sigma_w = 0.01
 
 # np.random.seed(seed=1)
@@ -44,7 +49,9 @@ if data == 'synthetic':
     init_mean1 = (X[0] + np.random.randn(7, 1)).reshape(-1, 1)
     init_mean1[2:] = np.array([[0], [0], [0], [0], [0]])
     init_mean2 = (X[0] + np.random.randn(7, 1)).reshape(-1, 1)
+    init_mean3 = (X[0] + np.random.randn(7, 1)).reshape(-1, 1)
     init_mean2[2:] = np.array([[0], [0], [0], [0], [0]])
+    init_mean3[2:] = np.array([[0], [0], [0], [0], [0]])
     N = len(X)
 if data == 'ped_dataset':
     dt = 1/30
@@ -55,14 +62,15 @@ if data == 'ped_dataset':
 
 init_cov1 = np.eye((7))*1.001
 init_cov2 = np.eye((7))
+init_cov3 = np.eye((7))*0.999
 
 # filters = [
 #     UKF(CV(sigma_q, n=2), sensor_model),
 #     UKF(CA(sigma_q, n=2), sensor_model),
 # ]
 filters = [
-    EKF(CV_7dim(sigma_q), sensor_model),
-    EKF(CT_7dim(sigma_a=sigma_a, sigma_w=sigma_w), sensor_model),
+    EKF(CA_7dim(sigma_a), sensor_model),
+    EKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
 ]
 
 n_filt = len(filters)
@@ -70,16 +78,21 @@ init_weights = np.ones((n_filt, 1))/n_filt
 
 init_states = [
     GaussState(init_mean1, init_cov1),
-    GaussState(init_mean2, init_cov2)]
+    GaussState(init_mean2, init_cov2),
+    ]
 
 immstate = GaussianMixture(
     init_weights, init_states
 )
 
 ##High probability that you stay in state
-PI = np.array([[0.95, 0.05],
-               [0.05, 0.95]])
+alpha = 0.95
+# PI = np.array([[alpha, 1-alpha],
+#                [1-alpha, alpha]])
 
+PI = np.array([[alpha, (1-alpha)],
+[alpha, (1-alpha)]
+])
 imm = IMM(filters, PI)
 
 gauss0, _       = imm.get_estimate(immstate)

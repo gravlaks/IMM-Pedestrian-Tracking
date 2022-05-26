@@ -19,18 +19,16 @@ from read_data import read_data
 from imm.Gaussian_Mixture import GaussianMixture
 from imm.IMM import IMM
 T = 0.1
-N = 500
-sigma_q = 0.3
-sigma_z = 0.3
-sigma_w = 0.1
+N = 1000
+sigma_q = 0.1
+sigma_z = 0.1
+sigma_w = 0.01
 n = 7
 
 filters = [
-    EKF(CT_7dim(sigma_q*0.01, sigma_w*0.1), RangeBearing(sigma_z*0.5, state_dim=n)),
-    EKF(CA_7dim(sigma_q*0.01), RangeBearing(sigma_z*1, state_dim=n)),
-    EKF(CA_7dim(sigma_q*0.01), RangeBearing(sigma_z*0.5, state_dim=n)),
-    EKF(CA_7dim(sigma_q*0.05), RangeBearing(sigma_z*0.5, state_dim=n)),
-    EKF(CT_7dim(sigma_q, sigma_w), RangeBearing(sigma_z, state_dim=n)),
+    EKF(CT_7dim(sigma_q, sigma_w), RangeBearing(sigma_z*1, sigma_th=0.01, state_dim=n)),
+    EKF(CA_7dim(sigma_q), RangeBearing(sigma_z*1, sigma_th=0.01,state_dim=n)),
+    EKF(CV_7dim(sigma_q), RangeBearing(sigma_z*1, sigma_th=0.01,state_dim=n)),
 ]
 
 init_weights = np.ones((len(filters), 1))/len(filters)
@@ -42,8 +40,8 @@ init_cov2 = np.eye((n))
 init_states = [
     GaussState(init_mean1, init_cov1),
     GaussState(init_mean1, init_cov1),
-    GaussState(init_mean1, init_cov1),
-    GaussState(init_mean1, init_cov1),
+   # GaussState(init_mean1, init_cov1),
+   # GaussState(init_mean1, init_cov1),
     GaussState(init_mean2, init_cov2), 
         ]
 
@@ -52,11 +50,11 @@ immstate = GaussianMixture(
 )
 
 ##High probability that you stay in state
-PI = np.array([[0.95, 0.01, 0.01, 0.01, 0.02],
-             [0.02, 0.95, 0.01, 0.01, 0.01],
-             [0.02, 0.01, 0.95, 0.01, 0.01],
-             [0.02, 0.01, 0.01, 0.95, 0.01],
-             [0.02, 0.01, 0.01, 0.01, 0.95]])
+PI = np.array([[0.95, 0.02, 0.03],
+             [0.02, 0.95, 0.03, ],
+             #[0.02, 0.01, 0.95, 0.01, 0.01],
+            # [0.02, 0.01, 0.01, 0.95, 0.01],
+             [0.02, 0.03, 0.95]])
 
 imm = IMM(filters, PI)
 
@@ -73,7 +71,7 @@ for i in tqdm(range(1, N-1)):
 
     z = np.array([
         np.linalg.norm(X[i], 2)+np.random.randn(1)*0.1, 
-        np.arctan(X[i, 1]/X[i, 0])+np.random.randn(1)*0.01]
+        np.arctan(X[i, 1]/X[i, 0])+np.random.randn(1)*0.001]
     ).reshape((-1, 1))
     #+np.random.randn(1)*10
 

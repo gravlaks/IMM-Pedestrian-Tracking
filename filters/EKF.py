@@ -40,7 +40,7 @@ class EKF():
             innovation[1] = self.wrap_angle(innovation[1])
         else: 
             raise Exception( "Should use RangeBearing model")
-        joseph_form = False
+        joseph_form = True
         if joseph_form:
             K = S@np.linalg.solve((C@S@C.T+R), C).T
             mu_nxt = mu + K@ innovation

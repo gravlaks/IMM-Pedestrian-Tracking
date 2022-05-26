@@ -38,7 +38,7 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
 
         #Change model 
         if run_model=='SWITCH':
-            if i%200==0:
+            if i%50==0:
                 # if cv_model:
                 #     xcurr[2:4] = np.zeros((2, 1))
 
@@ -55,9 +55,8 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
                 cv_model = not cv_model
 
                 if not cv_model:
-                    # xcurr[4:6] = np.random.randn(2).reshape(-1, 1)
+                    xcurr[4:6] = 0.001*np.random.randn(2).reshape(-1, 1)
                     xcurr[6] = np.random.randn(1).reshape(-1, 1)
-
                 switches.append(i)
 
         if cv_model:
@@ -68,6 +67,8 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
         # print(dyn)
 
         if process_noise:
+            #if isinstance(dyn, CA_7dim):
+            #    print(dyn.Q(xcurr, u=None, T=dt))
             xcurr = np.random.multivariate_normal(dyn.f(xcurr, u=None, T=dt).flatten(), dyn.Q(xcurr, u=None, T=dt)).reshape((-1, 1))
         else:
             xcurr = dyn.f(xcurr, u=None, T=dt)
@@ -113,7 +114,7 @@ if __name__=='__main__':
     from measurement_models.range_only import RangeOnly
     mu0 = np.zeros((7, 1))
     cov0 = np.eye(7)
-    xs, zs, switches = generate_data(1000, 0.1, mu0, cov0, process_noise=True, sensor_noise=True, run_model='SWITCH')
+    xs, zs, switches = generate_data(100, 0.1, mu0, cov0, process_noise=True, sensor_noise=True, run_model='SWITCH')
     # # xs, zs = get_data(0, process_noise=False, sensor_noise=False)
     # # import pdb;pdb.set_trace()
     # plot_trajectory(xs, zs)
