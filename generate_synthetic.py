@@ -61,7 +61,7 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
                 switches.append(i)
 
         if cv_model:
-            dyn = ca
+            dyn = cv
         else:
             dyn = ct # TURN THIS BW CT, CA
 

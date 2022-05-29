@@ -16,21 +16,27 @@ from read_data import read_data
 from imm.Gaussian_Mixture import GaussianMixture
 from imm.IMM import IMM
 from generate_synthetic import generate_data
-from generate_synthetic import get_data
+# from generate_synthetic import get_data
 from plot_statistics import plot_statistics
 from utils.plotting import plot_trajectory
 
 np.random.seed(13)
 
 data = 'synthetic'
-filter_model = 'CA' #options: CV, CT, CA
+filter_model = 'CV' #options: CV, CT, CA
 traj_num = 0
 T = 0.1
 
-sigma_q = 0.01
+# sigma_q = 0.01
+# sigma_r = 0.1
+# sigma_th = 0.01
+# sigma_a = 0.05
+# sigma_w = 0.01
+
+sigma_q = 0.1
 sigma_r = 0.1
 sigma_th = 0.01
-sigma_a = 0.05
+sigma_a = 0.1
 sigma_w = 0.01
 
 if data == 'synthetic':
@@ -47,7 +53,7 @@ if data == 'ped_dataset':
     init_mean1 = X[0,:]
     init_mean2 = X[0,:]
 
-init_cov1 = np.eye((7))*1e-1
+init_cov1 = np.eye((7))
 
 if filter_model == 'CV':
     filters = EKF(CV_7dim(sigma_q), RangeBearing(sigma_r, sigma_th, state_dim=7))
