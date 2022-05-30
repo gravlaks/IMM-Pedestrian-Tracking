@@ -46,23 +46,17 @@ np.random.seed(seed=12)
 
 sensor_model = RangeBearing(sigma_r, sigma_th, state_dim=7)
 filters = [
-    UKF(CV_7dim(sigma_q), sensor_model),
-    UKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
-    UKF(CA_7dim(sigma=sigma_a), sensor_model),
-
     EKF(CV_7dim(sigma_q), sensor_model),
     EKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
-    EKF(CA_7dim(sigma=sigma_a), sensor_model)
+    EKF(CA_7dim(sigma=sigma_a), sensor_model),
+
 ]
-
+individual_filters = []
 individual_filters = [
-    UKF(CV_7dim(sigma_q), sensor_model),
-    UKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
-    UKF(CA_7dim(sigma=sigma_a), sensor_model),
-
     EKF(CV_7dim(sigma_q), sensor_model),
     EKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
-    EKF(CA_7dim(sigma=sigma_a), sensor_model)
+    EKF(CA_7dim(sigma=sigma_a), sensor_model),
+
 ]
 
 filter_names = [filt.__class__.__name__ + filt.dyn_model.__class__.__name__ for filt in filters]
@@ -214,9 +208,9 @@ plot_statistics(times, mus.squeeze(), Sigmas.squeeze(), X.squeeze(), zs.squeeze(
 mus_ind['imm'] = mus.squeeze()
 Sigmas_ind['imm'] = Sigmas.squeeze()
 
-# for idx, flt in enumerate(individual_filters):
-# 	savestr=filter_names[idx]
-# 	plot_statistics(times, mus_ind[flt], Sigmas_ind[flt], X.squeeze(), zs.squeeze(), ['Px', 'Py', 'Vx', 'Vy', 'Ax', 'Ay', 'Turn Rate'], savestr=savestr, meas_states=None)
+for idx, flt in enumerate(individual_filters):
+	savestr=filter_names[idx]
+	plot_statistics(times, mus_ind[flt], Sigmas_ind[flt], X.squeeze(), zs.squeeze(), ['Px', 'Py', 'Vx', 'Vy', 'Ax', 'Ay', 'Turn Rate'], savestr=savestr, meas_states=None)
 
 filter_names.append('IMM')
 plot_errors(times, mus_ind, Sigmas_ind, X.squeeze(), zs.squeeze(), filter_names, 'imm_errors', switches=switches*dt)

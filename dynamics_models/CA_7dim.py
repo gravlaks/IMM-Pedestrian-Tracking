@@ -22,9 +22,12 @@ class CA_7dim():
         ddx = x[4]
         ddy = x[5]
         denom = dx**2 + dy**2
+        #if not denom == 0:
+        #F[6,6] = (-ddx*dy + ddy*dx)/denom
+        out = F@x
         if not denom == 0:
-            F[6,6] = (-ddx*dy + ddy*dx)/denom
-        return F@x
+            out[6] = (-ddx*dy + ddy*dx)/denom
+        return out 
 
     def F(self, x,u,T):
         F = np.zeros((7, 7))
