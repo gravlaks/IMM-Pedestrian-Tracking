@@ -2,9 +2,9 @@ from random import gauss
 import numpy as np
 from utils.Gauss import GaussState, moments_gaussian_mixture
 from imm.Gaussian_Mixture import GaussianMixture
-from dynamics_models.CA_7dim import CA_7dim
-from dynamics_models.CV_7dim import CV_7dim
-from dynamics_models.CT_7dim import CT_7dim
+from dynamics_models.CA import CA
+from dynamics_models.CV import CV
+from dynamics_models.CT import CT
 
 class IMM():
     def __init__(self, filters, pi):
@@ -25,15 +25,9 @@ class IMM():
 
     def get_dyn_types(self):
         dyn_models = [fil.dyn_model for fil in self.filters]
-        dyn_type = []
+        dyn_type = [dyn_model.__class__.__name__ for dyn_model in dyn_models]
 
-        for dyn in dyn_models:
-            if isinstance(dyn, CA_7dim):
-                dyn_type.append('CA')
-            elif isinstance(dyn, CV_7dim):
-                dyn_type.append('CV')
-            elif isinstance(dyn, CT_7dim):
-                dyn_type.append('CT')
+        
 
         return dyn_type
 

@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from dynamics_models.CV import CV
+from dynamics_models.CV_7dim import CV_7dim
 from dynamics_models.CA import CA
 from dynamics_models.CT import CT
 from measurement_models.range_only import RangeOnly
@@ -53,13 +53,13 @@ np.random.seed(seed=12)
 
 sensor_model = RangeBearing(sigma_r, sigma_th, state_dim=7)
 filters = [
-    EKF(CV(sigma_q), sensor_model),
-    EKF(CT(sigma_a, sigma_w=sigma_w), sensor_model),
-    EKF(CA(sigma=sigma_a), sensor_model),
+    iEKF(CV_7dim(sigma_q), sensor_model),
+    iEKF(CT(sigma_a, sigma_w=sigma_w), sensor_model),
+    iEKF(CA(sigma=sigma_a), sensor_model),
 
 ]
 individual_filters = [
-    EKF(CV(sigma_q), sensor_model),
+    EKF(CV_7dim(sigma_q), sensor_model),
     EKF(CT(sigma_a, sigma_w=sigma_w), sensor_model),
     EKF(CA(sigma=sigma_a), sensor_model),
 
