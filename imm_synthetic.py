@@ -48,13 +48,24 @@ sensor_model = RangeBearing(sigma_r, sigma_th, state_dim=7)
 filters = [
     UKF(CV_7dim(sigma_q), sensor_model),
     UKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
+    UKF(CA_7dim(sigma=sigma_a), sensor_model),
+
+    EKF(CV_7dim(sigma_q), sensor_model),
+    EKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
+    EKF(CA_7dim(sigma=sigma_a), sensor_model)
 ]
 
 individual_filters = [
     UKF(CV_7dim(sigma_q), sensor_model),
     UKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
+    UKF(CA_7dim(sigma=sigma_a), sensor_model),
+
+    EKF(CV_7dim(sigma_q), sensor_model),
+    EKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
+    EKF(CA_7dim(sigma=sigma_a), sensor_model)
 ]
-filter_names = ['CV', 'CT']
+
+filter_names = [filt.__class__.__name__ + filt.dyn_model.__class__.__name__ for filt in filters]
 
 n_filt = len(filters)
 if data == 'synthetic':
@@ -96,10 +107,7 @@ init_cov1, init_cov2 = init_covs[0], init_covs[1]
 
 init_weights = np.ones((n_filt, 1))/n_filt
 
-init_states = [
-    GaussState(init_mean1, init_cov1),
-    GaussState(init_mean2, init_cov2),
-    ]
+init_states = [GaussState(init_mean, init_cov) for init_mean, init_cov in zip(init_means, init_covs)]
 
 immstate = GaussianMixture(
     init_weights, init_states
@@ -107,9 +115,14 @@ immstate = GaussianMixture(
 
 ##High probability that you stay in state
 alpha = 0.95
-PI = np.array([[alpha, 1-alpha],
-               [1-alpha, alpha]])
-
+def generate_pi():
+    Pi = np.eye(n_filt)*alpha
+    for i in range(n_filt):
+        for j in range(n_filt):
+            if i != j:
+                Pi[i, j] = (1-alpha)/(n_filt-1)
+    return Pi
+PI = generate_pi()
 # PI = np.array([[alpha, (1-alpha)],
 # [alpha, (1-alpha)]
 # ])
@@ -201,9 +214,9 @@ plot_statistics(times, mus.squeeze(), Sigmas.squeeze(), X.squeeze(), zs.squeeze(
 mus_ind['imm'] = mus.squeeze()
 Sigmas_ind['imm'] = Sigmas.squeeze()
 
-for idx, flt in enumerate(individual_filters):
-	savestr=filter_names[idx]
-	plot_statistics(times, mus_ind[flt], Sigmas_ind[flt], X.squeeze(), zs.squeeze(), ['Px', 'Py', 'Vx', 'Vy', 'Ax', 'Ay', 'Turn Rate'], savestr=savestr, meas_states=None)
+# for idx, flt in enumerate(individual_filters):
+# 	savestr=filter_names[idx]
+# 	plot_statistics(times, mus_ind[flt], Sigmas_ind[flt], X.squeeze(), zs.squeeze(), ['Px', 'Py', 'Vx', 'Vy', 'Ax', 'Ay', 'Turn Rate'], savestr=savestr, meas_states=None)
 
 filter_names.append('IMM')
 plot_errors(times, mus_ind, Sigmas_ind, X.squeeze(), zs.squeeze(), filter_names, 'imm_errors', switches=switches*dt)

@@ -21,7 +21,7 @@ class UKF():
         try:
             cov_sqrt = np.linalg.cholesky(cov)
         except Exception as e:
-            print("non pos def")
+            #print("non pos def")
             cov_sqrt = np.linalg.cholesky(cov+np.eye(cov.shape[0])*1e-30)
 
         for i in range(self.n):
