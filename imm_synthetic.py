@@ -36,11 +36,11 @@ N = 500
 # sigma_a = 0.25
 # sigma_w = 0.01
 
-sigma_q = 0.1
+sigma_q = 0.001
 sigma_r = 0.1
-sigma_th = 0.01
-sigma_a = 0.1
-sigma_w = 0.01
+sigma_th = 0.001
+sigma_a = 0.3
+sigma_w = 0.02
 
 np.random.seed(seed=12)
 
@@ -53,12 +53,18 @@ if data == 'synthetic':
     print(switches*dt)
     # init_mean1 = np.zeros((7, 1))
     # init_mean2 = np.zeros((7, 1))
-    init_mean1 = (X[0] + np.random.randn(7, 1)).reshape(-1, 1)
-    init_mean1[2:] = np.array([[0], [0], [0], [0], [0]])
-    init_mean2 = (X[0] + np.random.randn(7, 1)).reshape(-1, 1)
-    init_mean3 = (X[0] + np.random.randn(7, 1)).reshape(-1, 1)
-    init_mean2[2:] = np.array([[0], [0], [0], [0], [0]])
-    init_mean3[2:] = np.array([[0], [0], [0], [0], [0]])
+    init_mean1 = (X[0]).reshape(-1, 1)
+    init_mean1[:6] += np.random.randn(6, 1)*0.1
+    init_mean1[6] +=np.random.randn()*1e-2
+    
+    init_mean2 = (X[0]).reshape(-1, 1)
+    init_mean2[:6] += np.random.randn(6, 1)*0.1
+    init_mean2[6] +=np.random.randn()*1e-2
+    #init_mean1[2:6] = np.array([[0], [0], [0], [0], [0]])
+    init_mean3= (X[0]).reshape(-1, 1)
+    init_mean3[:6] += np.random.randn(6,1)*0.1
+    init_mean3[6] +=np.random.randn()*1e-2
+
     N = len(X)
 if data == 'ped_dataset':
     dt = 1/30
@@ -67,22 +73,28 @@ if data == 'ped_dataset':
     init_mean1 = X[0,:]
     init_mean2 = X[0,:]
 
-init_cov1 = np.eye((7))
-init_cov2 = np.eye((7))
+
+init_cov1 = np.eye((7))*0.1
+init_cov1[6, 6] = 1e-2
+init_cov2 = np.eye((7))*0.1
+init_cov2[6, 6] = 1e-2
+
 init_cov3 = np.eye((7))
+init_cov3[6, 6] = 1e-2
+
 
 # filters = [
 #     UKF(CV(sigma_q, n=2), sensor_model),
 #     UKF(CA(sigma_q, n=2), sensor_model),
 # ]
 filters = [
-    EKF(CV_7dim(sigma_q), sensor_model),
-    EKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
+    UKF(CV_7dim(sigma_q), sensor_model),
+    UKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
 ]
 
 individual_filters = [
-    EKF(CV_7dim(sigma_q), sensor_model),
-    EKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
+    UKF(CV_7dim(sigma_q), sensor_model),
+    UKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
 ]
 filter_names = ['CV', 'CT']
 

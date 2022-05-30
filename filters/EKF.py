@@ -72,6 +72,7 @@ class EKF():
             np.log(2 * np.pi) / 2
         mean, cov = gauss_state
         innov = y-self.meas_model.h(mean)
+        innov[1] = self.wrap_angle(innov[1])
 
         ## innovation covariance: 
         H = self.meas_model.H(mean)
