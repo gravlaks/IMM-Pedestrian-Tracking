@@ -3,9 +3,9 @@ import numpy as np
 import os
 import pickle
 
-from dynamics_models.CV_7dim import CV_7dim
-from dynamics_models.CA_7dim import CA_7dim
-from dynamics_models.CT_7dim import CT_7dim
+from dynamics_models.CV import CV
+from dynamics_models.CA import CA
+from dynamics_models.CT import CT
 from measurement_models.range_bearing import RangeBearing
 from measurement_models.range_only import RangeOnly
 from utils.plotting import plot_trajectory

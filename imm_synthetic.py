@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from dynamics_models.CV_7dim import CV_7dim
-from dynamics_models.CA_7dim import CA_7dim
-from dynamics_models.CT_7dim import CT_7dim
+from dynamics_models.CV import CV
+from dynamics_models.CA import CA
+from dynamics_models.CT import CT
 from measurement_models.range_only import RangeOnly
 from measurement_models.range_bearing import RangeBearing
 # from measurement_models.range_bearing import RangeOnly
@@ -20,6 +20,7 @@ from generate_synthetic import generate_data
 from get_ped_data import get_data
 from plot_statistics import plot_statistics
 from plot_errors import plot_errors
+import time
 
 data = 'synthetic'
 traj_num = 154
@@ -36,30 +37,36 @@ N = 500
 # sigma_a = 0.25
 # sigma_w = 0.01
 
-sigma_q = 0.001
+sigma_q = 0.01
 sigma_r = 0.1
 sigma_th = 0.001
 sigma_a = 0.3
 sigma_w = 0.02
 
+sigma_q = 0.1
+sigma_r = 0.1
+sigma_th = 0.01
+sigma_a = 0.1
+sigma_w = 0.01
+
 np.random.seed(seed=12)
 
 sensor_model = RangeBearing(sigma_r, sigma_th, state_dim=7)
 filters = [
-    EKF(CV_7dim(sigma_q), sensor_model),
-    EKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
-    EKF(CA_7dim(sigma=sigma_a), sensor_model),
+    EKF(CV(sigma_q), sensor_model),
+    EKF(CT(sigma_a, sigma_w=sigma_w), sensor_model),
+    EKF(CA(sigma=sigma_a), sensor_model),
 
 ]
 individual_filters = []
 individual_filters = [
-    EKF(CV_7dim(sigma_q), sensor_model),
-    EKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
-    EKF(CA_7dim(sigma=sigma_a), sensor_model),
+    EKF(CV(sigma_q), sensor_model),
+    EKF(CT(sigma_a, sigma_w=sigma_w), sensor_model),
+    EKF(CA(sigma=sigma_a), sensor_model),
 
 ]
 
-filter_names = [filt.__class__.__name__ + filt.dyn_model.__class__.__name__ for filt in filters]
+filter_names = [filt.__class__.__name__ + '_' + filt.dyn_model.__class__.__name__ for filt in filters]
 
 n_filt = len(filters)
 if data == 'synthetic':
@@ -76,7 +83,6 @@ if data == 'synthetic':
         init_mean1[6] +=np.random.randn()*1e-2
         init_means.append(init_mean1)
     
-
     N = len(X)
 if data == 'ped_dataset':
     dt = 1/30
@@ -92,12 +98,6 @@ for i in range(n_filt):
     init_covs.append(init_cov1)
 init_mean1, init_mean2 = init_means[0], init_means[1]
 init_cov1, init_cov2 = init_covs[0], init_covs[1]
-
-
-# filters = [
-#     UKF(CV(sigma_q, n=2), sensor_model),
-#     UKF(CA(sigma_q, n=2), sensor_model),
-# ]
 
 init_weights = np.ones((n_filt, 1))/n_filt
 
@@ -117,14 +117,15 @@ def generate_pi():
                 Pi[i, j] = (1-alpha)/(n_filt-1)
     return Pi
 PI = generate_pi()
-# PI = np.array([[alpha, (1-alpha)],
-# [alpha, (1-alpha)]
-# ])
+
 imm = IMM(filters, PI)
 
 individual_gauss_states = {}
 for flt in individual_filters:
 	individual_gauss_states[flt] = [GaussState(init_mean1, init_cov1)]
+
+imm_comp = []
+filter_comp = []
 
 gauss0, _       = imm.get_estimate(immstate)
 gaussStates     = [gauss0]
@@ -133,16 +134,21 @@ for i in tqdm(range(1, N)):
 
     z = zs[i]
 
+    t = time.time()
+
     immstate       = imm.predict(immstate,u=None, T=dt)
     gauss, weights = imm.get_estimate(immstate)
     immstate       = imm.update(immstate, z)
     gauss, weights = imm.get_estimate(immstate)
+    imm_comp.append(time.time() - t)
     gaussStates.append(gauss)
     model_weights.append(weights.flatten())
 
     for flt in individual_filters:
+    	t = time.time()
     	pred = flt.predict(individual_gauss_states[flt][-1], u=None, T=dt)
     	upd  = flt.update(pred, z)
+    	filter_comp.append(time.time() - t)
     	individual_gauss_states[flt].append(upd)
 
     
@@ -186,22 +192,27 @@ plt.xlabel('X')
 plt.ylabel('Y')
 plt.grid(True)
 plt.axis('equal')
+plt.savefig('traj.png')
+
+times = dt*np.ones(N)
+times = np.cumsum(times)
 
 plt.figure()
 
 for i in range(model_weights.shape[1]):
 
-    plt.plot(model_weights[:,i],
+    plt.plot(times[1:], model_weights[:,i],
          label= filter_names[i]
     )
+    for k in switches*dt:
+	    plt.plot([k, k], [0, 1], 'k:')
 plt.legend()
 plt.title('Model Weights')
 plt.xlabel('Time')
 plt.ylabel('Weight')
+plt.ylim([0, 1])
 plt.grid(True)
-
-times = dt*np.ones(N)
-times = np.cumsum(times)
+plt.savefig('probs.png')
 
 plot_statistics(times, mus.squeeze(), Sigmas.squeeze(), X.squeeze(), zs.squeeze(), ['Px', 'Py', 'Vx', 'Vy', 'Ax', 'Ay', 'Turn Rate'], 'IMM', meas_states=None)
 
@@ -214,5 +225,8 @@ for idx, flt in enumerate(individual_filters):
 
 filter_names.append('IMM')
 plot_errors(times, mus_ind, Sigmas_ind, X.squeeze(), zs.squeeze(), filter_names, 'imm_errors', switches=switches*dt)
+
+print(f'IMM Predict/Update Cycle Average Computation Time: {np.mean(imm_comp)}')
+print(f'EKF Predict/Update Cycle Average Computation Time: {np.mean(filter_comp)}')
 
 plt.show()

@@ -2,13 +2,13 @@ from nbformat import read
 import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from dynamics_models.CA_7dim import CA_7dim
-from dynamics_models.CT_7dim import CT_7dim
-from dynamics_models.CT_7dim_alt import CT_7dim_alt
+from dynamics_models.CA import CA
+from dynamics_models.CT import CT
+from dynamics_models.CT_alt import CT_alt
 
 from dynamics_models.CV_inc import CV
 from dynamics_models.CA import CA
-from dynamics_models.CV_7dim import CV_7dim
+from dynamics_models.CV import CV
 from measurement_models.range_only import RangeOnly
 from measurement_models.range_bearing import RangeBearing
 from filters.EKF import EKF
@@ -26,9 +26,9 @@ sigma_w = 0.01
 n = 7
 
 filters = [
-    EKF(CT_7dim(sigma_q, sigma_w), RangeBearing(sigma_z*1, sigma_th=0.01, state_dim=n)),
-    EKF(CA_7dim(sigma_q), RangeBearing(sigma_z*1, sigma_th=0.01,state_dim=n)),
-    EKF(CV_7dim(sigma_q), RangeBearing(sigma_z*1, sigma_th=0.01,state_dim=n)),
+    EKF(CT(sigma_q, sigma_w), RangeBearing(sigma_z*1, sigma_th=0.01, state_dim=n)),
+    EKF(CA(sigma_q), RangeBearing(sigma_z*1, sigma_th=0.01,state_dim=n)),
+    EKF(CV(sigma_q), RangeBearing(sigma_z*1, sigma_th=0.01,state_dim=n)),
 ]
 
 init_weights = np.ones((len(filters), 1))/len(filters)

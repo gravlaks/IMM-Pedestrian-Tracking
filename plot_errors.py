@@ -24,6 +24,11 @@ def plot_errors(times, mus, Sigmas, x, y, titles, savestr, meas_states=None, swi
 
         max_errors = [np.max(pos_err), np.max(vel_err), np.max(acc_err), np.max(w_err)]
 
+        pos_err = np.convolve(pos_err, 1/5*np.ones(5), mode='same')
+        vel_err = np.convolve(vel_err, 1/5*np.ones(5), mode='same')
+        acc_err = np.convolve(acc_err, 1/5*np.ones(5), mode='same')
+        w_err = np.convolve(w_err, 1/5*np.ones(5), mode='same')
+
         i = -1
 
         ax[0,0].plot(times, pos_err, label=f'{titles[idx]}, MSE: {np.mean(pos_err):0.3f}')
@@ -37,21 +42,20 @@ def plot_errors(times, mus, Sigmas, x, y, titles, savestr, meas_states=None, swi
                     for k in range(len(switches)):
                         ax[i,j].plot([switches[k], switches[k]], [0, max_errors[2*i+j]], 'k:')
 
-        ax[0,0].set_title(f'Position Error')
-        ax[0,1].set_title(f'Velocity Error')
-        ax[1,0].set_title(f'Acceleration Error')
-        ax[1,1].set_title(f'Turn Rate Error')
+        ax[0,0].set_title(f'Position Squared Error')
+        ax[0,1].set_title(f'Velocity Squared Error')
+        ax[1,0].set_title(f'Acceleration Squared Error')
+        ax[1,1].set_title(f'Turn Rate Squared Error')
 
-        ax[0,0].set_ylabel(f'Magnitude State Error')
-        ax[1,0].set_ylabel(f'Magnitude State Error')
+        ax[0,0].set_ylabel(f'Magnitude State Squared Error')
+        ax[1,0].set_ylabel(f'Magnitude State Squared Error')
         ax[1,0].set_xlabel(f'Time')
         ax[1,1].set_xlabel(f'Time')
 
-        ax[0,0].set_ylim([0, 0.03])
-        ax[0,1].set_ylim([0, 0.15])
-        ax[1,0].set_ylim([0, 0.3])
-        ax[1,1].set_ylim([0.0, 1.5])
-
+        ax[0,0].set_ylim([0, 0.22])
+        ax[0,1].set_ylim([0, 1.75])
+        ax[1,0].set_ylim([0, 2.5])
+        ax[1,1].set_ylim([0.0, 1.2])
 
     if savestr:
         plt.savefig(f'{savestr}_errors.png')

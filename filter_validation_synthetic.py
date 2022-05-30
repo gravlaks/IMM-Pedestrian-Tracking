@@ -3,9 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
-from dynamics_models.CV_7dim import CV_7dim
-from dynamics_models.CA_7dim import CA_7dim
-from dynamics_models.CT_7dim import CT_7dim
+from dynamics_models.CV import CV
+from dynamics_models.CA import CA
+from dynamics_models.CT import CT
 from measurement_models.range_only import RangeOnly
 from measurement_models.range_bearing import RangeBearing
 from filters.EKF import EKF
@@ -23,7 +23,7 @@ from utils.plotting import plot_trajectory
 np.random.seed(13)
 
 data = 'synthetic'
-filter_model = 'CV' #options: CV, CT, CA
+filter_model = 'CT' #options: CV, CT, CA
 traj_num = 0
 T = 0.1
 
@@ -56,13 +56,13 @@ if data == 'ped_dataset':
 init_cov1 = np.eye((7))
 
 if filter_model == 'CV':
-    filters = EKF(CV_7dim(sigma_q), RangeBearing(sigma_r, sigma_th, state_dim=7))
+    filters = EKF(CV(sigma_q), RangeBearing(sigma_r, sigma_th, state_dim=7))
 elif filter_model=='CA':
-    filters = EKF(CA_7dim(sigma_q), RangeBearing(sigma_r, sigma_th, state_dim=7))
+    filters = EKF(CA(sigma_q), RangeBearing(sigma_r, sigma_th, state_dim=7))
 elif filter_model=='CT':
-    # filters = EKF(CA_7dim(sigma_q), RangeBearing(sigma_z, state_dim=7))
-    # filters = EKF(CV_7dim(sigma_q), RangeBearing(sigma_z, state_dim=7))
-    filters = EKF(CT_7dim(sigma_a=sigma_a, sigma_w=sigma_w), RangeBearing(sigma_r, sigma_th, state_dim=7))
+    # filters = EKF(CA(sigma_q), RangeBearing(sigma_z, state_dim=7))
+    # filters = EKF(CV(sigma_q), RangeBearing(sigma_z, state_dim=7))
+    filters = EKF(CT(sigma_a=sigma_a, sigma_w=sigma_w), RangeBearing(sigma_r, sigma_th, state_dim=7))
 
 gauss0 = GaussState(init_mean1, init_cov1)
 
