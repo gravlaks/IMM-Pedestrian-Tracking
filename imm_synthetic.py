@@ -45,48 +45,6 @@ sigma_w = 0.02
 np.random.seed(seed=12)
 
 sensor_model = RangeBearing(sigma_r, sigma_th, state_dim=7)
-
-if data == 'synthetic':
-    dt=0.1
-    # X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((7, 1)), cov0 = np.eye(7), process_noise=False, sensor_noise=False)
-    X, zs, switches = (np.load('x.npy'), np.load('z.npy'), np.load('switches.npy'))
-    print(switches*dt)
-    # init_mean1 = np.zeros((7, 1))
-    # init_mean2 = np.zeros((7, 1))
-    init_mean1 = (X[0]).reshape(-1, 1)
-    init_mean1[:6] += np.random.randn(6, 1)*0.1
-    init_mean1[6] +=np.random.randn()*1e-2
-    
-    init_mean2 = (X[0]).reshape(-1, 1)
-    init_mean2[:6] += np.random.randn(6, 1)*0.1
-    init_mean2[6] +=np.random.randn()*1e-2
-    #init_mean1[2:6] = np.array([[0], [0], [0], [0], [0]])
-    init_mean3= (X[0]).reshape(-1, 1)
-    init_mean3[:6] += np.random.randn(6,1)*0.1
-    init_mean3[6] +=np.random.randn()*1e-2
-
-    N = len(X)
-if data == 'ped_dataset':
-    dt = 1/30
-    X, zs = get_data(traj_num, sensor_model, process_noise=False, sensor_noise=True)
-    N, _ = X.shape
-    init_mean1 = X[0,:]
-    init_mean2 = X[0,:]
-
-
-init_cov1 = np.eye((7))*0.1
-init_cov1[6, 6] = 1e-2
-init_cov2 = np.eye((7))*0.1
-init_cov2[6, 6] = 1e-2
-
-init_cov3 = np.eye((7))
-init_cov3[6, 6] = 1e-2
-
-
-# filters = [
-#     UKF(CV(sigma_q, n=2), sensor_model),
-#     UKF(CA(sigma_q, n=2), sensor_model),
-# ]
 filters = [
     UKF(CV_7dim(sigma_q), sensor_model),
     UKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
@@ -99,6 +57,43 @@ individual_filters = [
 filter_names = ['CV', 'CT']
 
 n_filt = len(filters)
+if data == 'synthetic':
+    init_means = []
+    dt=0.1
+    # X, zs = generate_data(N=N, dt=dt, mu0=np.zeros((7, 1)), cov0 = np.eye(7), process_noise=False, sensor_noise=False)
+    X, zs, switches = (np.load('x.npy'), np.load('z.npy'), np.load('switches.npy'))
+    print(switches*dt)
+    for i in range(n_filt):
+    # init_mean1 = np.zeros((7, 1))
+    # init_mean2 = np.zeros((7, 1))
+        init_mean1 = (X[0]).reshape(-1, 1)
+        init_mean1[:6] += np.random.randn(6, 1)*0.1
+        init_mean1[6] +=np.random.randn()*1e-2
+        init_means.append(init_mean1)
+    
+
+    N = len(X)
+if data == 'ped_dataset':
+    dt = 1/30
+    X, zs = get_data(traj_num, sensor_model, process_noise=False, sensor_noise=True)
+    N, _ = X.shape
+    init_mean1 = X[0,:]
+    init_mean2 = X[0,:]
+
+init_covs = []
+for i in range(n_filt):
+    init_cov1 = np.eye((7))*0.1
+    init_cov1[6, 6] = 1e-2
+    init_covs.append(init_cov1)
+init_mean1, init_mean2 = init_means[0], init_means[1]
+init_cov1, init_cov2 = init_covs[0], init_covs[1]
+
+
+# filters = [
+#     UKF(CV(sigma_q, n=2), sensor_model),
+#     UKF(CA(sigma_q, n=2), sensor_model),
+# ]
+
 init_weights = np.ones((n_filt, 1))/n_filt
 
 init_states = [

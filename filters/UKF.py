@@ -21,8 +21,8 @@ class UKF():
         try:
             cov_sqrt = np.linalg.cholesky(cov)
         except Exception as e:
-            #print("non pos def")
-            cov_sqrt = np.linalg.cholesky(cov+np.eye(cov.shape[0])*1e-20)
+            print("non pos def")
+            cov_sqrt = np.linalg.cholesky(cov+np.eye(cov.shape[0])*1e-30)
 
         for i in range(self.n):
             col = cov_sqrt[:, i].reshape((-1, 1))
@@ -96,15 +96,16 @@ class UKF():
         innov[1] = self.wrap_angle(innov[1])
 
         K = S_xy@np.linalg.inv(S_Y)
+        # K = S@np.linalg.solve((C@S@C.T+R), C).T
 
         mu_nxt = mu+K@innov
-        C = self.meas_model.H(mu_y)
+        C = self.meas_model.H(mu_nxt)
         KC  =  K@C
         I = np.eye(((KC).shape[0]))
-        R = self.meas_model.R(mu_y)
+        R = self.meas_model.R(mu)
         Sigma_nxt = (I - KC) @ S @ (I- KC).T + K@ R @ K.T
         #Sigma_nxt  = S -K@S_Y@K.T
-        Sigma_nxt = S - S_xy@np.linalg.solve(S_Y, S_xy.T)
+        #Sigma_nxt = S - S_xy@np.linalg.solve(S_Y, S_xy.T)
 
         return GaussState(mu_nxt, Sigma_nxt)
 
