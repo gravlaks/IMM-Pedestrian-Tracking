@@ -3,18 +3,18 @@ import numpy as np
 import os
 import pickle
 
-from dynamics_models.CV_7dim import CV_7dim
-from dynamics_models.CA_7dim import CA_7dim
-from dynamics_models.CT_7dim import CT_7dim
+from dynamics_models.CV import CV
+from dynamics_models.CA import CA
+from dynamics_models.CT import CT
 from measurement_models.range_bearing import RangeBearing
 from utils.plotting import plot_trajectory
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_model='SWITCH'):
-    cv = CV_7dim(sigma=0.1)
-    ca = CA_7dim(sigma=0.05)
-    ct = CT_7dim(sigma_a=0.01, sigma_w=0.0001)
+    cv = CV(sigma=0.1)
+    ca = CA(sigma=0.05)
+    ct = CT(sigma_a=0.01, sigma_w=0.0001)
     meas = RangeBearing(sigma_r=0.1, sigma_th=0.001)
 
     # x0 = np.array([1, 2, 1, 2, 1, 2]).reshape((-1, 1))
@@ -67,7 +67,7 @@ def generate_data(N, dt, mu0, cov0, process_noise=True, sensor_noise=True, run_m
         # print(dyn)
 
         if process_noise:
-            #if isinstance(dyn, CA_7dim):
+            #if isinstance(dyn, CA):
             #    print(dyn.Q(xcurr, u=None, T=dt))
             xcurr = np.random.multivariate_normal(dyn.f(xcurr, u=None, T=dt).flatten(), dyn.Q(xcurr, u=None, T=dt)).reshape((-1, 1))
         else:

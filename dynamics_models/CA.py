@@ -15,20 +15,48 @@ class CA():
 
         F = self.F(x, u, T) 
 
-        return F@x
+        # compensating
+        w = x[-1]
+        dx = x[2]
+        dy = x[3]
+        ddx = x[4]
+        ddy = x[5]
+        denom = dx**2 + dy**2
+        #if not denom == 0:
+        #F[6,6] = (-ddx*dy + ddy*dx)/denom
+        out = F@x
+        if not denom == 0:
+            out[6] = (-ddx*dy + ddy*dx)/denom
+        return out 
 
     def F(self, x,u,T):
+        F = np.zeros((7, 7))
+        F[:6, :6] = np.eye(self.n*3)
 
-        F = np.eye(self.n*3)
+        x = x.reshape(-1, 1)
+        dx = x[2][0]
+        dy = x[3][0]
+        ddx = x[4][0]
+        ddy = x[5][0]
 
         if u is None:
             F[:self.n, self.n:self.n*2] = np.eye(self.n)*T
-            F[:self.n, self.n*2:] = np.eye(self.n)*T**2/2
-            F[self.n:self.n*2, self.n*2:] = np.eye(self.n)*T
+            F[:self.n, self.n*2:self.n*3] = np.eye(self.n)*T**2/2
+            F[self.n:self.n*2, self.n*2:self.n*3] = np.eye(self.n)*T
         else:
-            F[:self.n, self.n:self.n*2] = np.eye(self.n)*T
-            F[:self.n, self.n*2:] = u@np.eye(self.n)*T**2/2
-            F[self.n:self.n*2, self.n*2:] = u@np.eye(self.n)*T
+            raise Exception('u is not None')
+
+        denom = dx**2 + dy**2
+
+        if not denom == 0:
+
+            F[6] = np.array([[0, 
+                              0, 
+                              ddy/denom - (ddy*dx-ddx*dy)*2*dx/denom**2, 
+                              -ddx/denom + (ddx*dy-ddy*dx)*2*dy/denom**2, 
+                              -dy/denom,
+                              dx/denom,
+                              0]])
 
         return F
     
@@ -55,57 +83,18 @@ class CA():
         T3 = T**3
         T2 = T**2
 
-        Q = np.zeros((self.n*3))
-        Q = np.array(([[T5/20, 0.0  , T4/8, 0.0 , T3/4, 0.0 ],
-                       [0.0  , T5/20, 0.0 , T4/8, 0.0 , T3/4],
-                       [T4/8 , 0.0  , T3/3, 0.0 , T2/2, 0.0 ],
-                       [0.0  , T4/8 , 0.0 , T3/3, 0.0 , T2/2],
-                       [T3/6 , 0.0  , T2/2, 0.0 , T   , 0.0 ],
-                       [0.0  , T3/6 , 0.0 , T2/2, 0.0 , T   ]]))
+        Q = np.zeros((7, 7))
+        Q[:6, :6] = np.array(([[T5/20, 0.0  , T4/8, 0.0 , T3/4, 0.0 ],
+                                [0.0  , T5/20, 0.0 , T4/8, 0.0 , T3/4],
+                                [T4/8 , 0.0  , T3/3, 0.0 , T2/2, 0.0 ],
+                                [0.0  , T4/8 , 0.0 , T3/3, 0.0 , T2/2],
+                                [T3/6 , 0.0  , T2/2, 0.0 , T   , 0.0 ],
+                                [0.0  , T3/6 , 0.0 , T2/2, 0.0 , T   ]]))
 
         #Q[4:, 4:]  = np.eye(2)*0.00001
         return Q*self.sigma**2
 
-def compute_Q():
-    T = symbols("T")
-    sa = symbols("sa")
-    Qa = zeros(3*2, 3*2)
-    Qa[4, 4] = 1
-    Qa[5, 5]= 1
-    
-    F = eye(6)
-    F[0:2, 2:4] = T*eye(2)
 
-    F[0:2, 4:] = T**2/2.*eye(2)
-
-    F[2:4, 4:] = T*eye(2)
-
-   
-
-    #print(F)
-
-    Q = F@Qa@F.T#*sa**2
-    for row in range(n*3):
-        for col in range(n*3):
-            print(Q[row, col], end=" ")
-        print()
-    #print(Q)
-
-
-
-if __name__=='__main__':
-    n = 2
-    cv = CA(
-        n=n, 
-        sigma=1,
-    )
-    x0 = np.ones((n*3))
-    T = 0.1
-    print("x_nxt", cv.f(x0, T))
-    print("F", cv.F(x0, T))
-
-    compute_Q()
-    print("Q", cv.Q(x0, T))
 
 
 

@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 import time
 
-from dynamics_models.CV_7dim import CV_7dim
-from dynamics_models.CA_7dim import CA_7dim
-from dynamics_models.CT_7dim import CT_7dim
+from dynamics_models.CV import CV
+from dynamics_models.CA import CA
+from dynamics_models.CT import CT
 from measurement_models.range_only import RangeOnly
 from measurement_models.range_bearing import RangeBearing
 # from measurement_models.range_bearing import RangeOnly
@@ -203,9 +203,9 @@ if __name__ == "__main__":
                      RangeBearing(sigma_r, sigma_t, state_dim=7),
                      RangeBearing(sigma_r, sigma_t, state_dim=7)]
 
-    dyn_models = [CV_7dim(sigma_q),
-                  CA_7dim(sigma_q),
-                  CT_7dim(sigma_a=sigma_a, sigma_w=sigma_w)]
+    dyn_models = [CV(sigma_q),
+                  CA(sigma_q),
+                  CT(sigma_a=sigma_a, sigma_w=sigma_w)]
     
     n_runs = 318
     mse_all = np.zeros(n_runs)
