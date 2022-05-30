@@ -46,18 +46,21 @@ np.random.seed(seed=12)
 
 sensor_model = RangeBearing(sigma_r, sigma_th, state_dim=7)
 filters = [
+    # iEKF(CV_7dim(sigma_q), sensor_model),
+    # iEKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
+    # iEKF(CA_7dim(sigma=sigma_a), sensor_model),
     EKF(CV_7dim(sigma_q), sensor_model),
     EKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
     EKF(CA_7dim(sigma=sigma_a), sensor_model),
 
 ]
-individual_filters = []
 individual_filters = [
     EKF(CV_7dim(sigma_q), sensor_model),
     EKF(CT_7dim(sigma_a, sigma_w=sigma_w), sensor_model),
     EKF(CA_7dim(sigma=sigma_a), sensor_model),
 
 ]
+individual_filters = []
 
 filter_names = [filt.__class__.__name__ + filt.dyn_model.__class__.__name__ for filt in filters]
 
