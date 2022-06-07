@@ -1,8 +1,8 @@
 # Pedestrian Motion Tracking with IMM 
 ## Authors 
 
-Torstein Ørbeck Eliassen [@gravlaks](https://github.com/gravlaks)
-Brian Dobkowski [@bdobkowski](https://github.com/bdobkowski)
+Torstein Ørbeck Eliassen [@gravlaks](https://github.com/gravlaks)  
+Brian Dobkowski [@bdobkowski](https://github.com/bdobkowski)  
 Bradley Collicott [@bcollico](https://github.com/bcollico)
 
 ## Introduction
