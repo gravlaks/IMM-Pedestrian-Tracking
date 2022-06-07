@@ -1,9 +1,11 @@
 # Pedestrian Motion Tracking with IMM 
 ## Authors 
 
-Torstein Ørbeck Eliassen
-Brian Dobkowski
-Bradley Collicott
+Torstein Ørbeck Eliassen [@gravlaks](https://github.com/gravlaks)
+
+Brian Dobkowski [@bdobkowski](https://github.com/bdobkowski)
+
+Bradley Collicott [@bcollico](https://github.com/bcollico)
 
 ## Introduction
 *For the application of pedestrian motion tracking, an Interacting Multiple-Model filter (IMM) is developed for estimating 2D motion from the perspective of a static observer. The filtering system employs the constant velocity, constant turning, and constant acceleration motion models with tunable switching probabilities to capture the multimodal nature of human motion. UKF-IMM, EKF-IMM, and iEKF-IMM filters are implemented on both synthetic and real pedestrian data, and measures are taken to increase numerical stability of the algorithms.*
